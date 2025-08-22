@@ -17,6 +17,7 @@ export default class UIManager {
         controlsContainer.style.padding = '10px';
         controlsContainer.style.borderRadius = '5px';
         controlsContainer.style.color = 'white';
+        controlsContainer.style.width = '200px';
         document.body.appendChild(controlsContainer);
 
         // Attack Speed Slider
