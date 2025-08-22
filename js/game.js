@@ -111,7 +111,7 @@ const game = new Phaser.Game(config);
             if (gameScene.uiManager) {
                 gameScene.uiManager.displayDevModeText();
             }
-            window.dev.gui = new GUIManager(window.dev.tools); // Add the GUI
+            window.dev.gui = new GUIManager(window.dev.tools, gameScene.tower); // Add the GUI
             // Scene is ready, no need to poll anymore
             clearInterval(scenePoll);
             console.log('Dev tools and GUI attached. Access via `window.dev.tools` and `window.dev.gui`');
