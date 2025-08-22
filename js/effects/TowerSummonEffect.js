@@ -95,14 +95,11 @@ export default class TowerSummonEffect extends BaseEffect {
                 break;
 
             case 'STABLE':
+                // The effect is over. Clear all graphics and transition to DONE.
+                // The actual tower object will be made visible by the scene.
                 this.glitchGraphics.clear();
                 this.solidCircleGraphics.clear();
-
-                this.glitchGraphics.lineStyle(this.towerLineThickness, 0xffffff, 1);
-                this.glitchGraphics.strokeCircle(this.centerX, this.centerY, this.towerRadius);
-
-                this.solidCircleGraphics.lineStyle(this.solidCircleLineThickness, 0xffffff, 1);
-                this.solidCircleGraphics.strokeCircle(this.centerX, this.centerY, this.solidCircleRadius);
+                this.phaseAGraphics.clear(); // Also clear the dashed circle
 
                 this.animationState = 'DONE';
                 break;
