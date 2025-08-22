@@ -39,9 +39,9 @@ export default class Tower extends BaseGameObject {
 
         // --- Properties ---
         this.energy = 100;
-        this.attackDamage = 10;
+        this.attackDamage = 20; // Doubled from 10
         this.attackRange = 270;
-        this.attackSpeed = 1000;
+        this.attackSpeed = 500; // Halved from 1000 to double the speed
         this.lastAttackTime = 0;
 
         // --- Spawn Effect ---
