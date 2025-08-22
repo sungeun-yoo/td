@@ -36,6 +36,18 @@ export default class UIManager {
         });
     }
 
+    displayDevModeText() {
+        const devText = this.scene.add.text(15, 15, 'DEV MODE', {
+            fontFamily: '"Arial"',
+            fontSize: '32px',
+            color: '#00ff00', // Bright green text
+            backgroundColor: 'rgba(0,0,0,0.5)' // Semi-transparent black background
+        });
+        devText.setPadding(10, 5);
+        devText.setScrollFactor(0); // Keep it fixed on the screen, unaffected by camera scroll
+        devText.setDepth(1000); // Ensure it's on top of other UI elements
+    }
+
     destroy() {
         // Clean up the global event listener
         EventManager.off('WAVE_START', this.onWaveStart, this);

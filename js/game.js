@@ -107,6 +107,9 @@ const game = new Phaser.Game(config);
         if (gameScene && gameScene.scene.isActive()) {
             window.dev.scene = gameScene;
             window.dev.tools = new DevTools(gameScene); // Add the dev tools
+            if (gameScene.uiManager) {
+                gameScene.uiManager.displayDevModeText();
+            }
             // Scene is ready, no need to poll anymore
             clearInterval(scenePoll);
             console.log('Dev tools attached. Access via `window.dev.tools`');
