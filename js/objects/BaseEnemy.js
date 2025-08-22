@@ -90,6 +90,20 @@ export default class BaseEnemy extends BaseGameObject {
         new BaseProjectile(this.scene, this.x, this.y, this.attackData.projectileType, this.target);
     }
 
+    takeDamage(amount) {
+        this.health -= amount;
+        console.log(`'${this.data.name}' took ${amount} damage, health is now ${this.health}`);
+
+        if (this.health <= 0 && this.active) {
+            // In the future, we could play a death effect before destroying
+            // this.playEffect(DeathEffect).on('complete', () => this.destroy());
+            this.destroy();
+        } else {
+            // Optional: Play a hit effect if not dead
+            // this.playEffect(HitEffect);
+        }
+    }
+
     onWaveClear() {
         // When the wave is cleared, this enemy should be removed.
         console.log(`'${this.data.name}' is being removed due to WAVE_CLEAR.`);

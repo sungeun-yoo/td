@@ -92,9 +92,26 @@ export default class Tower extends BaseGameObject {
     }
 
     attack(target) {
-        // For now, this is an "instant hit" attack.
-        console.log(`Tower is attacking ${target.data.name}!`);
-        // In a real game, this would be: target.takeDamage(this.attackDamage);
+        // 1. Inflict damage on the target
+        if (target && target.active && typeof target.takeDamage === 'function') {
+            target.takeDamage(this.attackDamage);
+        }
+
+        // 2. Create visual effect (a temporary laser line)
+        const laser = this.scene.add.graphics();
+        laser.lineStyle(2, 0xffffff, 0.8);
+        laser.lineBetween(this.x, this.y, target.x, target.y);
+
+        // Use a tween to make the laser fade out and then destroy itself
+        this.scene.tweens.add({
+            targets: laser,
+            alpha: 0,
+            duration: 200, // Laser beam lasts for 0.2 seconds
+            ease: 'Sine.easeOut',
+            onComplete: () => {
+                laser.destroy();
+            }
+        });
     }
 
     playHitEffect() {
