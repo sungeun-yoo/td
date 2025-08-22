@@ -101,6 +101,29 @@ export default class UIManager {
             this.scene.tower.attackDamage = newDamage;
             damageValueLabel.innerText = newDamage;
         });
+
+        // Wave Navigation Buttons
+        const waveNavContainer = document.createElement('div');
+        waveNavContainer.style.marginTop = '20px';
+        waveNavContainer.style.display = 'flex';
+        waveNavContainer.style.justifyContent = 'space-between';
+        controlsContainer.appendChild(waveNavContainer);
+
+        const prevWaveButton = document.createElement('button');
+        prevWaveButton.innerText = 'Prev Wave';
+        waveNavContainer.appendChild(prevWaveButton);
+
+        const nextWaveButton = document.createElement('button');
+        nextWaveButton.innerText = 'Next Wave';
+        waveNavContainer.appendChild(nextWaveButton);
+
+        prevWaveButton.addEventListener('click', () => {
+            EventManager.emit('PREVIOUS_WAVE_REQUESTED');
+        });
+
+        nextWaveButton.addEventListener('click', () => {
+            EventManager.emit('NEXT_WAVE_REQUESTED');
+        });
     }
 
     onWaveStart(waveData) {
