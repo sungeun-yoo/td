@@ -3,7 +3,76 @@ import { EventManager } from './EventManager.js';
 export default class UIManager {
     constructor(scene) {
         this.scene = scene;
+        this.setupUI();
         EventManager.on('WAVE_START', this.onWaveStart, this);
+    }
+
+    setupUI() {
+        // Create a container for the controls
+        const controlsContainer = document.createElement('div');
+        controlsContainer.style.position = 'absolute';
+        controlsContainer.style.top = '10px';
+        controlsContainer.style.right = '10px';
+        controlsContainer.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        controlsContainer.style.padding = '10px';
+        controlsContainer.style.borderRadius = '5px';
+        controlsContainer.style.color = 'white';
+        document.body.appendChild(controlsContainer);
+
+        // Attack Speed Slider
+        const speedLabel = document.createElement('label');
+        speedLabel.htmlFor = 'speed-slider';
+        speedLabel.innerText = 'Attack Speed';
+        controlsContainer.appendChild(speedLabel);
+
+        const speedSlider = document.createElement('input');
+        speedSlider.type = 'range';
+        speedSlider.id = 'speed-slider';
+        speedSlider.min = '100';
+        speedSlider.max = '1000';
+        speedSlider.value = this.scene.tower.attackSpeed;
+        speedSlider.style.width = '100%';
+        controlsContainer.appendChild(speedSlider);
+
+        const speedValueLabel = document.createElement('span');
+        speedValueLabel.innerText = speedSlider.value;
+        controlsContainer.appendChild(speedValueLabel);
+
+        speedSlider.addEventListener('input', (event) => {
+            const newSpeed = parseInt(event.target.value, 10);
+            this.scene.tower.attackSpeed = newSpeed;
+            speedValueLabel.innerText = newSpeed;
+        });
+
+        // Attack Range Slider
+        const rangeLabel = document.createElement('label');
+        rangeLabel.htmlFor = 'range-slider';
+        rangeLabel.innerText = 'Attack Range';
+        rangeLabel.style.marginTop = '10px';
+        rangeLabel.style.display = 'block';
+        controlsContainer.appendChild(rangeLabel);
+
+        const rangeSlider = document.createElement('input');
+        rangeSlider.type = 'range';
+        rangeSlider.id = 'range-slider';
+        rangeSlider.min = '100';
+        rangeSlider.max = '500';
+        rangeSlider.value = this.scene.tower.attackRange;
+        rangeSlider.style.width = '100%';
+        controlsContainer.appendChild(rangeSlider);
+
+        const rangeValueLabel = document.createElement('span');
+        rangeValueLabel.innerText = rangeSlider.value;
+        controlsContainer.appendChild(rangeValueLabel);
+
+        rangeSlider.addEventListener('input', (event) => {
+            const newRange = parseInt(event.target.value, 10);
+            this.scene.tower.attackRange = newRange;
+            if (this.scene.tower.updateAttackRangeCircle) {
+                this.scene.tower.updateAttackRangeCircle(newRange);
+            }
+            rangeValueLabel.innerText = newRange;
+        });
     }
 
     onWaveStart(waveData) {
