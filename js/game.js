@@ -1,44 +1,24 @@
-import TowerSummonEffect from './effects/TowerSummonEffect.js';
+// No longer need to import the effect here, the Tower handles it.
 import Tower from './objects/Tower.js';
 
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
-
-        this.towerEffect = null;
         this.tower = null;
     }
 
     create() {
-        // For now, we'll trigger the tower creation automatically on start.
-        // Let's create it at the center of the screen.
         const towerX = this.cameras.main.width / 2;
         const towerY = this.cameras.main.height / 2;
 
-        // Start the creation effect at the target location.
-        // (Our effect currently defaults to the center, which is fine for now)
-        this.towerEffect = new TowerSummonEffect(this);
-        this.towerEffect.start();
+        // Creating a tower now automatically handles its own spawn effect.
+        this.tower = new Tower(this, towerX, towerY);
     }
 
     update(time, delta) {
-        // If the summon effect is running, update it.
-        if (this.towerEffect) {
-            this.towerEffect.update(time, delta);
-
-            // If the effect just finished, create the tower and clean up the effect.
-            if (this.towerEffect.isFinished) {
-                const towerX = this.towerEffect.centerX;
-                const towerY = this.towerEffect.centerY;
-
-                this.tower = new Tower(this, towerX, towerY);
-
-                this.towerEffect.destroy();
-                this.towerEffect = null;
-            }
-        }
-
-        // If the tower exists, call its update method.
+        // The tower's own update method now handles everything:
+        // a) the spawn effect lifecycle, and
+        // b) its regular logic (like attacking) once spawned.
         if (this.tower) {
             this.tower.update(time, delta);
         }

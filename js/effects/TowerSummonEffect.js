@@ -10,11 +10,11 @@ export default class TowerSummonEffect extends BaseEffect {
         this.solidCircleGraphics = this.scene.add.graphics();
     }
 
-    start() {
+    start(x, y) {
         this.isFinished = false;
 
-        this.centerX = this.scene.cameras.main.width / 2;
-        this.centerY = this.scene.cameras.main.height / 2;
+        this.centerX = x;
+        this.centerY = y;
 
         // 원 관련 크기 설정
         this.towerRadius = 24;
