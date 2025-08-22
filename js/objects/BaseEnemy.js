@@ -102,6 +102,23 @@ export default class BaseEnemy extends BaseGameObject {
         this.destroy();
     }
 
+    destroy(fromScene) {
+        if (!this.active) {
+            return; // Already being destroyed
+        }
+
+        // Manually destroy children to avoid the suspected error in Phaser's container destroy logic.
+        // The children are just graphics objects in this class.
+        this.list.forEach(child => {
+            child.destroy();
+        });
+
+        // Call the parent's destroy method.
+        // This will handle emitting the 'destroy' event (which our onDestroy handler listens for),
+        // and removing the object from the scene and physics.
+        super.destroy(fromScene);
+    }
+
     onDestroy() {
         // Clean up the global event listeners when this object is destroyed.
         EventManager.off('WAVE_CLEAR', this.onWaveClear, this);
