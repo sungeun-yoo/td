@@ -7,20 +7,20 @@ export default class BaseEnemy extends BaseGameObject {
     constructor(scene, x, y, enemyType, target) {
         super(scene, x, y);
 
-        this.data = ENEMY_DATA[enemyType];
+        this.enemyData = ENEMY_DATA[enemyType];
         this.target = target;
 
         // --- Stats from Data ---
-        this.health = this.data.health;
-        this.speed = this.data.speed;
-        this.attackData = this.data.attack;
+        this.health = this.enemyData.health;
+        this.speed = this.enemyData.speed;
+        this.attackData = this.enemyData.attack;
         this.lastAttackTime = 0;
 
         // --- Procedural Graphics ---
         this.drawShape();
 
         // --- Physics Body ---
-        const size = this.data.shape.size;
+        const size = this.enemyData.shape.size;
         this.body.setSize(size, size);
 
         // --- Event Listeners ---
@@ -31,17 +31,17 @@ export default class BaseEnemy extends BaseGameObject {
 
     drawShape() {
         const graphics = this.scene.add.graphics();
-        const shapeData = this.data.shape;
+        const shapeData = this.enemyData.shape;
         const size = shapeData.size;
         const halfSize = size / 2;
 
-        graphics.lineStyle(2, this.data.color, 1);
+        graphics.lineStyle(2, this.enemyData.color, 1);
 
         if (shapeData.type === 'square') {
             if (shapeData.hollow) {
                 graphics.strokeRect(-halfSize, -halfSize, size, size);
             } else {
-                graphics.fillStyle(this.data.color, 1);
+                graphics.fillStyle(this.enemyData.color, 1);
                 graphics.fillRect(-halfSize, -halfSize, size, size);
             }
 
@@ -92,7 +92,7 @@ export default class BaseEnemy extends BaseGameObject {
 
     takeDamage(amount) {
         this.health -= amount;
-        console.log(`'${this.data.name}' took ${amount} damage, health is now ${this.health}`);
+        console.log(`'${this.enemyData.name}' took ${amount} damage, health is now ${this.health}`);
 
         if (this.health <= 0 && this.active) {
             // In the future, we could play a death effect before destroying
@@ -106,13 +106,13 @@ export default class BaseEnemy extends BaseGameObject {
 
     onWaveClear() {
         // When the wave is cleared, this enemy should be removed.
-        console.log(`'${this.data.name}' is being removed due to WAVE_CLEAR.`);
+        console.log(`'${this.enemyData.name}' is being removed due to WAVE_CLEAR.`);
         this.destroy();
     }
 
     onGameOver() {
         // When the game is over, this enemy should be removed.
-        console.log(`'${this.data.name}' is being removed due to GAME_OVER.`);
+        console.log(`'${this.enemyData.name}' is being removed due to GAME_OVER.`);
         this.destroy();
     }
 

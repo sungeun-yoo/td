@@ -121,4 +121,17 @@ export default class Tower extends BaseGameObject {
     playDestroyEffect() {
         console.log(`Tower at (${Math.round(this.x)}, ${Math.round(this.y)}) was destroyed!`);
     }
+
+    takeDamage(amount) {
+        this.energy -= amount;
+        console.log(`Tower took ${amount} damage, energy is now ${this.energy}`);
+
+        if (this.energy <= 0 && this.active) {
+            // The 'destroy' event is emitted by the parent class,
+            // which GameScene listens for to trigger the GAME_OVER event.
+            this.destroy();
+        } else {
+            this.playHitEffect();
+        }
+    }
 }

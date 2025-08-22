@@ -12,22 +12,22 @@ export default class BaseProjectile extends BaseGameObject {
     constructor(scene, x, y, projectileType, target) {
         super(scene, x, y);
 
-        this.data = PROJECTILE_DATA[projectileType];
+        this.projectileData = PROJECTILE_DATA[projectileType];
         this.target = target;
-        this.speed = this.data.speed;
-        this.damage = this.data.damage;
+        this.speed = this.projectileData.speed;
+        this.damage = this.projectileData.damage;
 
         // Draw the projectile's shape
         const graphics = this.scene.add.graphics();
-        graphics.fillStyle(this.data.color, 1);
-        if (this.data.shape.type === 'circle') {
-            graphics.fillCircle(0, 0, this.data.shape.radius);
+        graphics.fillStyle(this.projectileData.color, 1);
+        if (this.projectileData.shape.type === 'circle') {
+            graphics.fillCircle(0, 0, this.projectileData.shape.radius);
         }
         // Can add other shapes like 'square' here later
         this.add(graphics);
 
         // Match the physics body size to the graphic
-        this.body.setSize(this.data.shape.radius * 2, this.data.shape.radius * 2);
+        this.body.setSize(this.projectileData.shape.radius * 2, this.projectileData.shape.radius * 2);
 
         // Set its velocity towards the target
         // This is a one-time calculation. For a homing missile, this logic would be in update().
@@ -47,7 +47,7 @@ export default class BaseProjectile extends BaseGameObject {
             if (distance < 20) { // A small threshold to register a hit.
                 // In a real game, you would apply damage to the target here.
                 // this.target.takeDamage(this.damage);
-                console.log(`'${this.data.name}' hit the target!`);
+                console.log(`'${this.projectileData.name}' hit the target!`);
                 this.destroy(); // Destroy the projectile on hit.
             }
         }

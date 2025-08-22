@@ -38,18 +38,17 @@ class GameScene extends Phaser.Scene {
 
         // --- Physics Collisions ---
         this.physics.add.overlap(this.tower, this.enemies, (tower, enemy) => {
-            // Melee enemies handle their own destruction in their update loop.
-            // This overlap is where we would apply damage to the tower.
+            // This overlap is for melee enemies hitting the tower.
             if (tower.active && enemy.active) {
-                // tower.takeDamage(enemy.attackData.damage);
+                tower.takeDamage(enemy.attackData.damage);
+                // The enemy destroys itself in its own update loop upon impact.
             }
         });
 
         this.physics.add.overlap(this.tower, this.projectiles, (tower, projectile) => {
              if (tower.active && projectile.active) {
-                console.log(`Tower was hit by a projectile!`);
+                tower.takeDamage(projectile.damage);
                 projectile.destroy();
-                // tower.takeDamage(projectile.damage);
              }
         });
     }
