@@ -2,6 +2,7 @@ import Tower from './objects/Tower.js';
 import BaseEnemy from './objects/BaseEnemy.js';
 import BaseProjectile from './objects/BaseProjectile.js';
 import LevelManager from './managers/LevelManager.js';
+import UIManager from './managers/UIManager.js';
 import { EventManager } from './managers/EventManager.js';
 
 class GameScene extends Phaser.Scene {
@@ -11,9 +12,12 @@ class GameScene extends Phaser.Scene {
         this.enemies = null;
         this.projectiles = null;
         this.levelManager = null;
+        this.uiManager = null;
     }
 
     create() {
+        // --- Managers ---
+        this.uiManager = new UIManager(this);
         // --- Groups ---
         this.enemies = this.physics.add.group({ classType: BaseEnemy, runChildUpdate: true });
         this.projectiles = this.physics.add.group({ classType: BaseProjectile, runChildUpdate: true });
@@ -34,13 +38,19 @@ class GameScene extends Phaser.Scene {
 
         // --- Physics Collisions ---
         this.physics.add.overlap(this.tower, this.enemies, (tower, enemy) => {
-            // This logic is now simplified as the enemy handles its own destruction on impact.
-            // We might add tower damage logic here in the future.
+            // Melee enemies handle their own destruction in their update loop.
+            // This overlap is where we would apply damage to the tower.
+            if (tower.active && enemy.active) {
+                // tower.takeDamage(enemy.attackData.damage);
+            }
         });
 
         this.physics.add.overlap(this.tower, this.projectiles, (tower, projectile) => {
-             projectile.destroy();
-             // In the future: tower.takeDamage(projectile.damage);
+             if (tower.active && projectile.active) {
+                console.log(`Tower was hit by a projectile!`);
+                projectile.destroy();
+                // tower.takeDamage(projectile.damage);
+             }
         });
     }
 

@@ -1,5 +1,6 @@
 import BaseGameObject from './BaseGameObject.js';
 import TowerSummonEffect from '../effects/TowerSummonEffect.js';
+import { EventManager } from '../managers/EventManager.js';
 
 export default class Tower extends BaseGameObject {
     constructor(scene, x, y, enemiesGroup) {
@@ -74,7 +75,9 @@ export default class Tower extends BaseGameObject {
         if (this.spawnEffect) {
             if (this.spawnEffect.isFinished) {
                 this.setVisible(true);
-                this.spawnEffect = null;
+                this.spawnEffect = null; // Set to null before emitting to prevent re-triggering
+                EventManager.emit('TOWER_SPAWNED', this);
+                console.log('Tower has spawned and emitted TOWER_SPAWNED event.');
             }
             return;
         }

@@ -10,6 +10,13 @@ export default class LevelManager {
 
         this.enemiesSpawnedThisWave = 0;
         this.isWaveActive = false;
+
+        EventManager.on('TOWER_SPAWNED', this.onTowerSpawned, this);
+    }
+
+    onTowerSpawned() {
+        console.log('LevelManager received TOWER_SPAWNED event. Starting first wave.');
+        this.startNextWave();
     }
 
     startLevel(levelNumber) {
@@ -20,8 +27,8 @@ export default class LevelManager {
             return;
         }
         this.currentWaveIndex = -1;
-        console.log(`Starting Level ${this.currentLevel}`);
-        this.startNextWave();
+        console.log(`Starting Level ${this.currentLevel}. Waiting for tower to spawn...`);
+        // We no longer start the wave here; we wait for the TOWER_SPAWNED event.
     }
 
     startNextWave() {
@@ -29,7 +36,7 @@ export default class LevelManager {
         if (this.currentWaveIndex >= this.levelData.waves.length) {
             EventManager.emit('LEVEL_CLEAR', { level: this.currentLevel });
             console.log(`Level ${this.currentLevel} CLEARED!`);
-            return; // No more waves
+            return;
         }
 
         const waveData = this.levelData.waves[this.currentWaveIndex];
@@ -39,32 +46,30 @@ export default class LevelManager {
         EventManager.emit('WAVE_START', { level: this.currentLevel, wave: this.currentWaveIndex + 1 });
         console.log(`--- Starting Wave ${this.currentWaveIndex + 1}: ${waveData.waveName} ---`);
 
-        // Create timer events for each enemy group in the wave
         waveData.enemies.forEach(enemyGroup => {
             this.scene.time.addEvent({
                 delay: enemyGroup.spawnDelay,
-                repeat: enemyGroup.count - 1,
+                repeat: enemyGroup.count,
                 callback: () => {
-                    this.scene.spawnEnemy(enemyGroup.type);
-                    this.enemiesSpawnedThisWave++;
+                    // Only spawn if the wave is still active (e.g., not cleared prematurely)
+                    if(this.isWaveActive) {
+                        this.scene.spawnEnemy(enemyGroup.type);
+                        this.enemiesSpawnedThisWave++;
+                    }
                 }
             });
-            // Spawn the first enemy of this group immediately
-            this.scene.spawnEnemy(enemyGroup.type);
-            this.enemiesSpawnedThisWave++;
         });
     }
 
     update() {
-        if (!this.isWaveActive) {
-            return;
-        }
+        if (!this.isWaveActive) return;
 
         const totalEnemiesInWave = this.levelData.waves[this.currentWaveIndex].enemies.reduce((total, group) => total + group.count, 0);
 
-        // Check if all enemies for the current wave have been spawned
+        // This check is flawed because the timers are asynchronous.
+        // A better way is to count enemies as they are defeated.
+        // The current check is: all enemies have been spawned AND all enemies are dead.
         if (this.enemiesSpawnedThisWave >= totalEnemiesInWave) {
-            // If all spawned, check if they are all defeated
             if (this.scene.enemies.countActive(true) === 0) {
                 this.isWaveActive = false;
                 const waveData = this.levelData.waves[this.currentWaveIndex];
@@ -72,9 +77,12 @@ export default class LevelManager {
                 EventManager.emit('WAVE_CLEAR', { level: this.currentLevel, wave: this.currentWaveIndex + 1 });
                 console.log(`--- Wave ${this.currentWaveIndex + 1} CLEARED! ---`);
 
-                // Wait for the delay and then start the next wave
                 this.scene.time.delayedCall(waveData.delayAfterWave, this.startNextWave, [], this);
             }
         }
+    }
+
+    destroy() {
+        EventManager.off('TOWER_SPAWNED', this.onTowerSpawned, this);
     }
 }
