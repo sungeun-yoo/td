@@ -74,6 +74,33 @@ export default class UIManager {
             }
             rangeValueLabel.innerText = newRange;
         });
+
+        // Attack Damage Slider
+        const damageLabel = document.createElement('label');
+        damageLabel.htmlFor = 'damage-slider';
+        damageLabel.innerText = 'Attack Damage';
+        damageLabel.style.marginTop = '10px';
+        damageLabel.style.display = 'block';
+        controlsContainer.appendChild(damageLabel);
+
+        const damageSlider = document.createElement('input');
+        damageSlider.type = 'range';
+        damageSlider.id = 'damage-slider';
+        damageSlider.min = '10';
+        damageSlider.max = '100';
+        damageSlider.value = this.scene.tower.attackDamage;
+        damageSlider.style.width = '100%';
+        controlsContainer.appendChild(damageSlider);
+
+        const damageValueLabel = document.createElement('span');
+        damageValueLabel.innerText = damageSlider.value;
+        controlsContainer.appendChild(damageValueLabel);
+
+        damageSlider.addEventListener('input', (event) => {
+            const newDamage = parseInt(event.target.value, 10);
+            this.scene.tower.attackDamage = newDamage;
+            damageValueLabel.innerText = newDamage;
+        });
     }
 
     onWaveStart(waveData) {
