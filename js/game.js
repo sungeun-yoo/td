@@ -92,9 +92,9 @@ const config = {
 const game = new Phaser.Game(config);
 
 // --- Developer Mode ---
-// Access via `?dev=true` in the URL
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('dev') === 'true') {
+// This section enables developer tools by default.
+// For a release build, this entire block should be commented out or removed.
+(function() {
     console.log('Developer mode enabled. Access tools via `window.dev`');
     window.dev = {
         game: game,
@@ -112,4 +112,4 @@ if (urlParams.get('dev') === 'true') {
             console.log('Dev tools attached. Access via `window.dev.tools`');
         }
     }, 500);
-}
+})();
