@@ -1,15 +1,9 @@
 import BaseGameObject from './BaseGameObject.js';
 import { ENEMY_DATA } from '../data/enemy_data.js';
 import BaseProjectile from './BaseProjectile.js';
+import { EventManager } from '../managers/EventManager.js';
 
 export default class BaseEnemy extends BaseGameObject {
-    /**
-     * @param {Phaser.Scene} scene
-     * @param {number} x
-     * @param {number} y
-     * @param {string} enemyType The key for the enemy's data.
-     * @param {BaseGameObject} target The game object to move towards and attack.
-     */
     constructor(scene, x, y, enemyType, target) {
         super(scene, x, y);
 
@@ -28,6 +22,11 @@ export default class BaseEnemy extends BaseGameObject {
         // --- Physics Body ---
         const size = this.data.shape.size;
         this.body.setSize(size, size);
+
+        // --- Event Listeners ---
+        EventManager.on('WAVE_CLEAR', this.onWaveClear, this);
+        EventManager.on('GAME_OVER', this.onGameOver, this);
+        this.on('destroy', this.onDestroy, this);
     }
 
     drawShape() {
@@ -61,28 +60,23 @@ export default class BaseEnemy extends BaseGameObject {
             return;
         }
 
+        // --- Movement and Attack Logic ---
         const distanceToTarget = Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y);
         const attackType = this.attackData.type;
 
         if (attackType === 'melee') {
-            // Move directly towards the target
             const direction = new Phaser.Math.Vector2(this.target.x - this.x, this.target.y - this.y).normalize();
             this.body.setVelocity(direction.x * this.speed, direction.y * this.speed);
 
-            // Check for collision (a simple distance check)
             if (distanceToTarget < 30) {
-                 console.log(`'${this.data.name}' hit the tower with a melee attack!`);
-                 // In a real game: this.target.takeDamage(this.attackData.damage);
                  this.destroy(); // Melee units are destroyed on impact
             }
         } else if (attackType === 'ranged') {
-            const attackRange = 250; // Ranged enemies stop at a distance
+            const attackRange = 250;
             if (distanceToTarget > attackRange) {
-                // Move towards target if too far
                 const direction = new Phaser.Math.Vector2(this.target.x - this.x, this.target.y - this.y).normalize();
                 this.body.setVelocity(direction.x * this.speed, direction.y * this.speed);
             } else {
-                // Stop when in range and attack
                 this.body.setVelocity(0, 0);
                 if (time > this.lastAttackTime + this.attackData.fireRate) {
                     this.performRangedAttack();
@@ -93,7 +87,24 @@ export default class BaseEnemy extends BaseGameObject {
     }
 
     performRangedAttack() {
-        console.log(`'${this.data.name}' is firing a projectile!`);
         new BaseProjectile(this.scene, this.x, this.y, this.attackData.projectileType, this.target);
+    }
+
+    onWaveClear() {
+        // When the wave is cleared, this enemy should be removed.
+        console.log(`'${this.data.name}' is being removed due to WAVE_CLEAR.`);
+        this.destroy();
+    }
+
+    onGameOver() {
+        // When the game is over, this enemy should be removed.
+        console.log(`'${this.data.name}' is being removed due to GAME_OVER.`);
+        this.destroy();
+    }
+
+    onDestroy() {
+        // Clean up the global event listeners when this object is destroyed.
+        EventManager.off('WAVE_CLEAR', this.onWaveClear, this);
+        EventManager.off('GAME_OVER', this.onGameOver, this);
     }
 }
