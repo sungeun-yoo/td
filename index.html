@@ -22,6 +22,31 @@
             max-height: 100%;
         }
     </style>
+    <style>
+        /* Custom styles for dat.GUI to make it larger for better visibility */
+        .dg.main {
+            font-size: 18px; /* Increase base font size */
+            width: 350px !important; /* Force a wider GUI */
+        }
+        .dg.main .cr {
+            padding: 10px 0; /* Add padding to rows */
+            line-height: 1.5;
+        }
+        .dg.main .cr.function, .dg.main .cr.boolean {
+            height: 40px; /* Increase height for buttons and checkboxes */
+            line-height: 40px;
+        }
+        .dg li.title {
+            height: 45px; /* Increase folder title height */
+            line-height: 45px;
+        }
+        .dg .c select {
+            font-size: 18px; /* Increase font size for dropdowns */
+        }
+        .dg .c .slider {
+            height: 20px; /* Make sliders easier to grab */
+        }
+    </style>
 </head>
 <body>
 

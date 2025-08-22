@@ -19,7 +19,7 @@ export default class GUIManager {
     init() {
         // --- Tower Folder ---
         const towerFolder = this.gui.addFolder('Tower');
-        towerFolder.add(this.devTools, 'godMode').name('Toggle God Mode');
+        towerFolder.add(this, 'toggleGodMode').name('Toggle God Mode');
         towerFolder.open();
 
         // --- Spawning Folder ---
@@ -42,5 +42,9 @@ export default class GUIManager {
 
     startWave() {
         this.devTools.startWave(this.waveOptions.waveIndex);
+    }
+
+    toggleGodMode() {
+        this.devTools.godMode();
     }
 }
