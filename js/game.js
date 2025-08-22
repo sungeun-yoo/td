@@ -4,6 +4,7 @@ import BaseProjectile from './objects/BaseProjectile.js';
 import LevelManager from './managers/LevelManager.js';
 import UIManager from './managers/UIManager.js';
 import { EventManager } from './managers/EventManager.js';
+import DevTools from './managers/DevTools.js';
 
 class GameScene extends Phaser.Scene {
     constructor() {
@@ -89,3 +90,26 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
+// --- Developer Mode ---
+// Access via `?dev=true` in the URL
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('dev') === 'true') {
+    console.log('Developer mode enabled. Access tools via `window.dev`');
+    window.dev = {
+        game: game,
+        scene: null // Will be populated later
+    };
+
+    // Poll for the scene to be ready
+    const scenePoll = setInterval(() => {
+        const gameScene = game.scene.getScene('GameScene');
+        if (gameScene && gameScene.scene.isActive()) {
+            window.dev.scene = gameScene;
+            window.dev.tools = new DevTools(gameScene); // Add the dev tools
+            // Scene is ready, no need to poll anymore
+            clearInterval(scenePoll);
+            console.log('Dev tools attached. Access via `window.dev.tools`');
+        }
+    }, 500);
+}

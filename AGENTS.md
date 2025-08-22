@@ -34,3 +34,14 @@
 -   **자체 관리:** 예를 들어, `Tower`는 자신의 생성 애니메이션을 스스로 관리하며, `BaseEnemy`는 자신의 이동과 공격 로직을 `update` 메소드 안에서 직접 처리합니다. 새로운 기능을 추가할 때는 해당 기능이 속한 오브젝트의 클래스 내부에 구현하는 것을 원칙으로 합니다.
 
 이 가이드라인을 따르면 코드의 일관성과 확장성을 유지할 수 있습니다.
+
+## 5. 개발자 모드 (Developer Mode)
+
+게임 URL에 `?dev=true` 쿼리 파라미터를 추가하여 개발자 모드를 활성화할 수 있습니다. 활성화되면, 브라우저의 개발자 콘솔에서 `window.dev` 객체를 통해 다양한 디버깅 기능에 접근할 수 있습니다.
+
+-   **`window.dev.tools.startLevel(levelNumber)`**: 지정된 레벨을 시작합니다.
+-   **`window.dev.tools.startWave(waveIndex)`**: 현재 레벨의 특정 웨이브(0부터 시작)를 시작합니다.
+-   **`window.dev.tools.spawnEnemy(type, count)`**: 지정된 타입의 적을 지정된 수만큼 소환합니다.
+-   **`window.dev.tools.godMode()`**: 타워의 무적 모드를 켜거나 끕니다.
+
+예시: `window.dev.tools.spawnEnemy('enemy_type_1', 5)`
