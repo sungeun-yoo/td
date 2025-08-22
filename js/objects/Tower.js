@@ -91,6 +91,12 @@ export default class Tower extends BaseGameObject {
         }
     }
 
+    updateAttackRangeCircle(newRange) {
+        this.attackRangeCircle.clear();
+        this.attackRangeCircle.lineStyle(3, 0xffffff, 1);
+        this.attackRangeCircle.strokeCircle(0, 0, newRange);
+    }
+
     attack(target) {
         // 1. Inflict damage on the target
         if (target && target.active && typeof target.takeDamage === 'function') {

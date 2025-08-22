@@ -2,7 +2,7 @@ export const ENEMY_DATA = {
     'enemy_type_1': {
         name: 'Melee Enemy',
         health: 50,
-        speed: 100,
+        speed: 130,
         shape: {
             type: 'square',
             size: 30,
@@ -18,7 +18,7 @@ export const ENEMY_DATA = {
     'enemy_type_2': {
         name: 'Ranged Enemy',
         health: 40,
-        speed: 80,
+        speed: 104,
         shape: {
             type: 'square',
             size: 30,

@@ -16,8 +16,6 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        // --- Managers ---
-        this.uiManager = new UIManager(this);
         // --- Groups ---
         this.enemies = this.physics.add.group({ classType: BaseEnemy, runChildUpdate: true });
         this.projectiles = this.physics.add.group({ classType: BaseProjectile, runChildUpdate: true });
@@ -26,6 +24,9 @@ class GameScene extends Phaser.Scene {
         const towerX = this.cameras.main.width / 2;
         const towerY = this.cameras.main.height / 2;
         this.tower = new Tower(this, towerX, towerY, this.enemies);
+
+        // --- Managers ---
+        this.uiManager = new UIManager(this);
         // Listen for the tower's destruction to signal game over
         this.tower.on('destroy', () => {
             EventManager.emit('GAME_OVER');
