@@ -12,27 +12,21 @@ export default class Tower extends BaseGameObject {
         // The Tower is a container. We add its visual components as children.
         // The positions of children are relative to the container's origin (0,0).
 
-        // 1. Tower Body
+        // 1. Tower Body - A stroked circle to match the summon effect's final frame
         const towerBody = this.scene.add.graphics();
-        towerBody.fillStyle(0x6666ff, 1); // A nice blue for the tower
-        towerBody.fillCircle(0, 0, 24);
+        towerBody.lineStyle(5, 0xffffff, 1); // 5px thickness, white
+        towerBody.strokeCircle(0, 0, 24); // 24px radius
         this.add(towerBody);
 
-        // 2. Two Shields
-        const innerShield = this.scene.add.graphics();
-        innerShield.lineStyle(2, 0x00ffff, 0.7); // Cyan shield
-        innerShield.strokeCircle(0, 0, 35);
-        this.add(innerShield);
+        // 2. Outer Attack Range Indicator
+        const attackRangeCircle = this.scene.add.graphics();
+        attackRangeCircle.lineStyle(3, 0xffffff, 1); // 3px thickness, white
+        attackRangeCircle.strokeCircle(0, 0, 270); // 270px radius
+        this.add(attackRangeCircle);
 
-        const outerShield = this.scene.add.graphics();
-        outerShield.lineStyle(1, 0xffffff, 0.5); // White, fainter shield
-        outerShield.strokeCircle(0, 0, 45);
-        this.add(outerShield);
-
-        // Store references to the parts in case we want to animate them later
+        // Store references to the parts
         this.towerBody = towerBody;
-        this.innerShield = innerShield;
-        this.outerShield = outerShield;
+        this.attackRangeCircle = attackRangeCircle;
 
         // --- Define Tower Properties ---
         this.energy = 100; // Health of the tower
