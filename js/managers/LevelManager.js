@@ -93,6 +93,15 @@ export default class LevelManager {
         });
     }
 
+    startNextWave() {
+        if (this.currentWaveIndex < this.levelData.waves.length - 1) {
+            this.startWave(this.currentWaveIndex + 1);
+        } else {
+            console.log("All waves cleared, level finished.");
+            EventManager.emit('LEVEL_CLEAR', { level: this.currentLevel });
+        }
+    }
+
     update() {
         if (!this.isWaveActive) return;
 
@@ -105,8 +114,11 @@ export default class LevelManager {
                 EventManager.emit('WAVE_CLEAR', { level: this.currentLevel, wave: this.currentWaveIndex + 1 });
                 console.log(`--- Wave ${this.currentWaveIndex + 1} CLEARED! ---`);
 
-                // Automatic progression removed.
-                // this.scene.time.delayedCall(waveData.delayAfterWave, this.startNextWave, [], this);
+                const waveData = this.levelData.waves[this.currentWaveIndex];
+                // Automatically start the next wave after the specified delay
+                if (this.currentWaveIndex < this.levelData.waves.length - 1) {
+                    this.scene.time.delayedCall(waveData.delayAfterWave, this.startNextWave, [], this);
+                }
             }
         }
     }
