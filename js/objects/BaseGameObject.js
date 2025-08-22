@@ -11,8 +11,9 @@ export default class BaseGameObject extends Phaser.GameObjects.Container {
         // Children objects (like sprites or graphics) will be added to this container.
         super(scene, x, y);
 
-        // Add the game object to the scene's display list.
+        // Add the game object to the scene's display and physics lists.
         this.scene.add.existing(this);
+        this.scene.physics.add.existing(this);
 
         this.activeEffects = []; // To store and manage running effects.
     }

@@ -2,16 +2,17 @@ import BaseGameObject from './BaseGameObject.js';
 import TowerSummonEffect from '../effects/TowerSummonEffect.js';
 
 export default class Tower extends BaseGameObject {
-    constructor(scene, x, y) {
+    constructor(scene, x, y, enemiesGroup) {
         super(scene, x, y);
+        this.enemiesGroup = enemiesGroup;
 
         // --- Graphics ---
+        // ... (rest of graphics code is unchanged)
         const towerBody = this.scene.add.graphics();
         towerBody.lineStyle(5, 0xffffff, 1);
         towerBody.strokeCircle(0, 0, 24);
         this.add(towerBody);
 
-        // Inner Dashed Shield
         const innerDashedShield = this.scene.add.graphics();
         const radius = 180;
         const totalSteps = 100;
@@ -34,6 +35,7 @@ export default class Tower extends BaseGameObject {
         this.innerDashedShield = innerDashedShield;
         this.attackRangeCircle = attackRangeCircle;
 
+
         // --- Properties ---
         this.energy = 100;
         this.attackDamage = 10;
@@ -42,29 +44,43 @@ export default class Tower extends BaseGameObject {
         this.lastAttackTime = 0;
 
         // --- Spawn Effect ---
-        // Use the generic effect player from the base class.
         this.spawnEffect = this.playEffect(TowerSummonEffect);
         this.setVisible(false);
     }
 
+    findTarget() {
+        let closestEnemy = null;
+        let closestDistance = Infinity;
+
+        this.enemiesGroup.getChildren().forEach(enemy => {
+            if (enemy.active) {
+                const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestEnemy = enemy;
+                }
+            }
+        });
+
+        if (closestDistance <= this.attackRange) {
+            return closestEnemy;
+        }
+        return null;
+    }
+
     update(time, delta) {
-        // Call the parent's update method to manage the effect lifecycle.
         super.update(time, delta);
 
-        // If the spawn effect is playing, wait for it to finish.
         if (this.spawnEffect) {
             if (this.spawnEffect.isFinished) {
                 this.setVisible(true);
-                this.spawnEffect = null; // We no longer need to track it.
+                this.spawnEffect = null;
             }
-            return; // Don't run attack logic until the spawn is complete.
+            return;
         }
 
-        // --- Attack Logic ---
-        const target = { name: 'Enemy', x: this.x + 100, y: this.y };
-        const distance = Phaser.Math.Distance.Between(this.x, this.y, target.x, target.y);
-
-        if (distance <= this.attackRange) {
+        const target = this.findTarget();
+        if (target) {
             if (time > this.lastAttackTime + this.attackSpeed) {
                 this.attack(target);
                 this.lastAttackTime = time;
@@ -73,16 +89,16 @@ export default class Tower extends BaseGameObject {
     }
 
     attack(target) {
-        console.log(`Tower at (${Math.round(this.x)}, ${Math.round(this.y)}) is attacking ${target.name}!`);
+        // For now, this is an "instant hit" attack.
+        console.log(`Tower is attacking ${target.data.name}!`);
+        // In a real game, this would be: target.takeDamage(this.attackDamage);
     }
 
     playHitEffect() {
-        // Placeholder for when the tower is hit.
         console.log(`Tower at (${Math.round(this.x)}, ${Math.round(this.y)}) was hit!`);
     }
 
     playDestroyEffect() {
-        // Placeholder for when the tower is destroyed.
         console.log(`Tower at (${Math.round(this.x)}, ${Math.round(this.y)}) was destroyed!`);
     }
 }
