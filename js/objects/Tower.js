@@ -11,12 +11,27 @@ export default class Tower extends BaseGameObject {
         towerBody.strokeCircle(0, 0, 24);
         this.add(towerBody);
 
+        // Inner Dashed Shield
+        const innerDashedShield = this.scene.add.graphics();
+        const radius = 180;
+        const totalSteps = 100;
+        innerDashedShield.lineStyle(2, 0xffffff, 0.8);
+        for (let i = 0; i < totalSteps; i += 2) {
+            const startAngle = Phaser.Math.DegToRad(-90 + (i / totalSteps) * 360);
+            const endAngle = Phaser.Math.DegToRad(-90 + ((i + 1) / totalSteps) * 360);
+            innerDashedShield.beginPath();
+            innerDashedShield.arc(0, 0, radius, startAngle, endAngle, false);
+            innerDashedShield.strokePath();
+        }
+        this.add(innerDashedShield);
+
         const attackRangeCircle = this.scene.add.graphics();
         attackRangeCircle.lineStyle(3, 0xffffff, 1);
         attackRangeCircle.strokeCircle(0, 0, 270);
         this.add(attackRangeCircle);
 
         this.towerBody = towerBody;
+        this.innerDashedShield = innerDashedShield;
         this.attackRangeCircle = attackRangeCircle;
 
         // --- Properties ---
