@@ -122,8 +122,21 @@ export default class LevelManager {
         if (this.currentWaveIndex < this.levelData.waves.length - 1) {
             this.startWave(this.currentWaveIndex + 1);
         } else {
-            console.log("All waves cleared, level finished.");
+            console.log(`All waves for Level ${this.currentLevel} cleared.`);
             EventManager.emit('LEVEL_CLEAR', { level: this.currentLevel });
+
+            const nextLevel = this.currentLevel + 1;
+            if (LEVEL_DATA[nextLevel]) {
+                console.log(`--- Starting Next Level: ${nextLevel} ---`);
+                this.startLevel(nextLevel);
+                // The first wave of a new level needs to be triggered manually
+                // because the TOWER_SPAWNED event that starts level 1 won't fire again.
+                // We'll add a short delay to give the player a moment.
+                this.nextWaveTimer = this.scene.time.delayedCall(3000, () => this.startWave(0), [], this);
+            } else {
+                console.log("All levels cleared! VICTORY!");
+                EventManager.emit('GAME_VICTORY'); // A new event for winning the game
+            }
         }
     }
 
@@ -140,10 +153,9 @@ export default class LevelManager {
                 console.log(`--- Wave ${this.currentWaveIndex + 1} CLEARED! ---`);
 
                 const waveData = this.levelData.waves[this.currentWaveIndex];
-                // Automatically start the next wave after the specified delay
-                if (this.currentWaveIndex < this.levelData.waves.length - 1) {
-                    this.nextWaveTimer = this.scene.time.delayedCall(waveData.delayAfterWave, this.startNextWave, [], this);
-                }
+                // Always schedule a call to startNextWave. It will figure out what to do
+                // (next wave, next level, or end game).
+                this.nextWaveTimer = this.scene.time.delayedCall(waveData.delayAfterWave, this.startNextWave, [], this);
             }
         }
     }
