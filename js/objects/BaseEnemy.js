@@ -56,7 +56,13 @@ export default class BaseEnemy extends BaseGameObject {
     update(time, delta) {
         super.update(time, delta); // Manages effects
 
-        if (!this.target || !this.active) {
+        // If the super.update() call resulted in the object being destroyed (e.g. from an effect),
+        // stop further processing.
+        if (!this.active) {
+            return;
+        }
+
+        if (!this.target) {
             this.body.setVelocity(0, 0);
             return;
         }
