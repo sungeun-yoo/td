@@ -10,6 +10,7 @@ export default class BaseEnemy extends BaseGameObject {
 
         this.enemyData = ENEMY_DATA[enemyType];
         this.target = target;
+        this.isDying = false;
 
         // --- Stats from Data ---
         this.health = this.enemyData.health;
@@ -54,10 +55,16 @@ export default class BaseEnemy extends BaseGameObject {
     }
 
     update(time, delta) {
-        super.update(time, delta); // Manages effects
+        super.update(time, delta); // This updates and cleans up active effects
 
-        // If the super.update() call resulted in the object being destroyed (e.g. from an effect),
-        // stop further processing.
+        // If the enemy is dying, wait for its effects to finish, then destroy it.
+        if (this.isDying) {
+            if (this.activeEffects.length === 0) {
+                this.destroy();
+            }
+            return;
+        }
+
         if (!this.active) {
             return;
         }
@@ -98,22 +105,22 @@ export default class BaseEnemy extends BaseGameObject {
     }
 
     takeDamage(amount) {
-        if (!this.active) {
-            return; // Don't take damage if already dying
+        if (this.isDying) {
+            return;
         }
 
         this.health -= amount;
         console.log(`'${this.enemyData.name}' took ${amount} damage, health is now ${this.health}`);
 
         if (this.health <= 0) {
+            this.isDying = true;
+
             // Immediately hide the enemy and disable its physics body
             this.setVisible(false);
             this.body.enable = false;
 
-            // Play the death effect and destroy the object once the effect is complete
-            this.playEffect(DeathEffect, this.enemyData.color).on('complete', () => {
-                this.destroy();
-            });
+            // Play the death effect. The update loop will handle the final destruction.
+            this.playEffect(DeathEffect, this.enemyData.color);
         } else {
             // Optional: Play a hit effect if not dead
             // this.playEffect(HitEffect);
