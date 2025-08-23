@@ -78,6 +78,84 @@ export const LEVEL_DATA = {
         ]
     },
     2: {
-        // Future levels can be easily added here
+        waves: [
+            {
+                waveName: 'Wave 11',
+                enemies: [
+                    { type: 'enemy_type_3', count: 8, spawnDelay: 800 } // Fast Melee
+                ],
+                delayAfterWave: 3000
+            },
+            {
+                waveName: 'Wave 12',
+                enemies: [
+                    { type: 'enemy_type_4', count: 4, spawnDelay: 1500 } // Tank Melee
+                ],
+                delayAfterWave: 3000
+            },
+            {
+                waveName: 'Wave 13',
+                enemies: [
+                    { type: 'enemy_type_3', count: 6, spawnDelay: 1000 },
+                    { type: 'enemy_type_4', count: 3, spawnDelay: 2000 }
+                ],
+                delayAfterWave: 5000
+            },
+            {
+                waveName: 'Wave 14',
+                enemies: [
+                    { type: 'enemy_type_8', count: 15, spawnDelay: 400 }, // Swarmer
+                    { type: 'enemy_type_5', count: 5, spawnDelay: 1200 }  // Basic Ranged
+                ],
+                delayAfterWave: 4000
+            },
+            {
+                waveName: 'Wave 15',
+                enemies: [
+                    { type: 'enemy_type_6', count: 6, spawnDelay: 1000 } // Rapid-Fire Ranged
+                ],
+                delayAfterWave: 4000
+            },
+            {
+                waveName: 'Wave 16',
+                enemies: [
+                    { type: 'enemy_type_5', count: 4, spawnDelay: 1500 },
+                    { type: 'enemy_type_6', count: 4, spawnDelay: 1500 }
+                ],
+                delayAfterWave: 5000
+            },
+            {
+                waveName: 'Wave 17',
+                enemies: [
+                    { type: 'enemy_type_9', count: 8, spawnDelay: 900 },  // Heavy Swarmer
+                    { type: 'enemy_type_7', count: 5, spawnDelay: 1300 }  // Glass Cannon
+                ],
+                delayAfterWave: 5000
+            },
+            {
+                waveName: 'Wave 18',
+                enemies: [
+                    { type: 'enemy_type_11', count: 5, spawnDelay: 1200 }, // Elite Melee
+                    { type: 'enemy_type_10', count: 5, spawnDelay: 1200 }  // Solid Ranged
+                ],
+                delayAfterWave: 6000
+            },
+            {
+                waveName: 'Wave 19',
+                enemies: [
+                    { type: 'enemy_type_8', count: 25, spawnDelay: 200 }, // Swarmer
+                    { type: 'enemy_type_3', count: 10, spawnDelay: 500 }  // Fast Melee
+                ],
+                delayAfterWave: 5000
+            },
+            {
+                waveName: 'Wave 20 (Boss)',
+                enemies: [
+                    { type: 'enemy_type_12', count: 1, spawnDelay: 1000 }, // Mini-Boss
+                    { type: 'enemy_type_9', count: 10, spawnDelay: 1500 } // Heavy Swarmer Escort
+                ],
+                delayAfterWave: 10000
+            }
+        ]
     }
 };
