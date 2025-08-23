@@ -2,6 +2,7 @@ import BaseGameObject from './BaseGameObject.js';
 import { ENEMY_DATA } from '../data/enemy_data.js';
 import BaseProjectile from './BaseProjectile.js';
 import { EventManager } from '../managers/EventManager.js';
+import DeathEffect from '../effects/DeathEffect.js';
 
 export default class BaseEnemy extends BaseGameObject {
     constructor(scene, x, y, enemyType, target) {
@@ -95,9 +96,9 @@ export default class BaseEnemy extends BaseGameObject {
         console.log(`'${this.enemyData.name}' took ${amount} damage, health is now ${this.health}`);
 
         if (this.health <= 0 && this.active) {
-            // In the future, we could play a death effect before destroying
-            // this.playEffect(DeathEffect).on('complete', () => this.destroy());
-            this.destroy();
+            this.playEffect(DeathEffect, this.enemyData.color).on('complete', () => {
+                this.destroy();
+            });
         } else {
             // Optional: Play a hit effect if not dead
             // this.playEffect(HitEffect);
