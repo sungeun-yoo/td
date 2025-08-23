@@ -3,11 +3,28 @@ import { EventManager } from './EventManager.js';
 export default class UIManager {
     constructor(scene) {
         this.scene = scene;
+        this.waveStatusText = null; // To hold the persistent wave status text
         this.setupUI();
         EventManager.on('WAVE_START', this.onWaveStart, this);
     }
 
     setupUI() {
+        // Create a container for the wave status
+        const statusContainer = document.createElement('div');
+        statusContainer.style.position = 'absolute';
+        statusContainer.style.top = '10px';
+        statusContainer.style.left = '10px';
+        statusContainer.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        statusContainer.style.padding = '10px';
+        statusContainer.style.borderRadius = '5px';
+        statusContainer.style.color = 'white';
+        statusContainer.style.fontFamily = 'Arial, sans-serif';
+        document.body.appendChild(statusContainer);
+
+        this.waveStatusText = document.createElement('div');
+        this.waveStatusText.innerText = 'Waiting to start...';
+        statusContainer.appendChild(this.waveStatusText);
+
         // Create a container for the controls
         const controlsContainer = document.createElement('div');
         controlsContainer.style.position = 'absolute';
@@ -127,11 +144,20 @@ export default class UIManager {
     }
 
     onWaveStart(waveData) {
-        const text = `Wave ${waveData.wave}`;
+        const levelInfo = `Level ${waveData.level}`;
+        const waveInfo = `Wave ${waveData.wave}`;
+        const fullText = `${levelInfo} - ${waveInfo}`;
+
+        // Update the persistent status text
+        if (this.waveStatusText) {
+            this.waveStatusText.innerText = fullText;
+        }
+
+        // Update the temporary splash text
         const screenCenterX = this.scene.cameras.main.worldView.x + this.scene.cameras.main.width / 2;
         const screenCenterY = this.scene.cameras.main.worldView.y + this.scene.cameras.main.height / 2;
 
-        const waveText = this.scene.add.text(screenCenterX, screenCenterY, text, {
+        const waveText = this.scene.add.text(screenCenterX, screenCenterY, fullText, {
             fontFamily: '"Arial Black"',
             fontSize: '96px',
             color: '#ffffff',
