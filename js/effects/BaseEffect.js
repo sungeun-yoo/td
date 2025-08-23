@@ -1,8 +1,9 @@
-export default class BaseEffect {
+export default class BaseEffect extends Phaser.Events.EventEmitter {
     /**
      * @param {Phaser.Scene} scene The Scene to which this effect belongs.
      */
     constructor(scene) {
+        super();
         this.scene = scene;
         this.isFinished = false;
     }
