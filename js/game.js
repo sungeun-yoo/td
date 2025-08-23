@@ -30,6 +30,7 @@ class GameScene extends Phaser.Scene {
         // Listen for the tower's destruction to signal game over
         this.tower.on('destroy', () => {
             EventManager.emit('GAME_OVER');
+            this.uiManager.showGameOverScreen();
             console.log("--- GAME OVER ---");
         });
 
@@ -56,11 +57,32 @@ class GameScene extends Phaser.Scene {
 
     // This method is now a helper called by LevelManager
     spawnEnemy(enemyType) {
-        const x = Phaser.Math.Between(100, this.cameras.main.width - 100);
-        const y = 0;
+        const spawnMargin = 50;
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
 
-        // The 'new' keyword is not needed here because the group's `create` method handles it.
-        // However, we need to pass custom constructor arguments, so we create it manually.
+        const side = Phaser.Math.Between(0, 3);
+        let x, y;
+
+        switch (side) {
+            case 0: // Top
+                x = Phaser.Math.Between(0, width);
+                y = -spawnMargin;
+                break;
+            case 1: // Right
+                x = width + spawnMargin;
+                y = Phaser.Math.Between(0, height);
+                break;
+            case 2: // Bottom
+                x = Phaser.Math.Between(0, width);
+                y = height + spawnMargin;
+                break;
+            case 3: // Left
+                x = -spawnMargin;
+                y = Phaser.Math.Between(0, height);
+                break;
+        }
+
         const enemy = new BaseEnemy(this, x, y, enemyType, this.tower);
         this.enemies.add(enemy, true);
     }

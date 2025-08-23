@@ -2,6 +2,7 @@ import BaseGameObject from './BaseGameObject.js';
 import { ENEMY_DATA } from '../data/enemy_data.js';
 import BaseProjectile from './BaseProjectile.js';
 import { EventManager } from '../managers/EventManager.js';
+import DeathEffect from '../effects/DeathEffect.js';
 
 export default class BaseEnemy extends BaseGameObject {
     constructor(scene, x, y, enemyType, target) {
@@ -9,6 +10,7 @@ export default class BaseEnemy extends BaseGameObject {
 
         this.enemyData = ENEMY_DATA[enemyType];
         this.target = target;
+        this.isDying = false;
 
         // --- Stats from Data ---
         this.health = this.enemyData.health;
@@ -53,9 +55,21 @@ export default class BaseEnemy extends BaseGameObject {
     }
 
     update(time, delta) {
-        super.update(time, delta); // Manages effects
+        super.update(time, delta); // This updates and cleans up active effects
 
-        if (!this.target || !this.active) {
+        // If the enemy is dying, wait for its effects to finish, then destroy it.
+        if (this.isDying) {
+            if (this.activeEffects.length === 0) {
+                this.destroy();
+            }
+            return;
+        }
+
+        if (!this.active) {
+            return;
+        }
+
+        if (!this.target) {
             this.body.setVelocity(0, 0);
             return;
         }
@@ -69,7 +83,7 @@ export default class BaseEnemy extends BaseGameObject {
             this.body.setVelocity(direction.x * this.speed, direction.y * this.speed);
 
             if (distanceToTarget < 30) {
-                 this.destroy(); // Melee units are destroyed on impact
+                 this.die(); // Melee units die on impact
             }
         } else if (attackType === 'ranged') {
             const attackRange = 250;
@@ -91,17 +105,33 @@ export default class BaseEnemy extends BaseGameObject {
     }
 
     takeDamage(amount) {
+        if (this.isDying) {
+            return;
+        }
+
         this.health -= amount;
         console.log(`'${this.enemyData.name}' took ${amount} damage, health is now ${this.health}`);
 
-        if (this.health <= 0 && this.active) {
-            // In the future, we could play a death effect before destroying
-            // this.playEffect(DeathEffect).on('complete', () => this.destroy());
-            this.destroy();
+        if (this.health <= 0) {
+            this.die();
         } else {
             // Optional: Play a hit effect if not dead
             // this.playEffect(HitEffect);
         }
+    }
+
+    die() {
+        if (this.isDying) {
+            return;
+        }
+        this.isDying = true;
+
+        // Immediately hide the enemy and disable its physics body
+        this.setVisible(false);
+        this.body.enable = false;
+
+        // Play the death effect. The update loop will handle the final destruction.
+        this.playEffect(DeathEffect, this.enemyData.color);
     }
 
     onWaveClear() {

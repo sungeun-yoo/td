@@ -8,11 +8,14 @@ export default class LevelManager {
         this.currentLevel = 0;
         this.currentWaveIndex = -1;
         this.waveTimers = [];
+        this.nextWaveTimer = null;
 
         this.enemiesSpawnedThisWave = 0;
         this.isWaveActive = false;
+        this.isGameOver = false;
 
         EventManager.on('TOWER_SPAWNED', this.onTowerSpawned, this);
+        EventManager.on('GAME_OVER', this.onGameOver, this);
         EventManager.on('PREVIOUS_WAVE_REQUESTED', this.onPreviousWaveRequested, this);
         EventManager.on('NEXT_WAVE_REQUESTED', this.onNextWaveRequested, this);
     }
@@ -20,6 +23,20 @@ export default class LevelManager {
     onTowerSpawned() {
         console.log('LevelManager received TOWER_SPAWNED event. Starting first wave.');
         this.startWave(0);
+    }
+
+    onGameOver() {
+        this.isGameOver = true;
+        this.isWaveActive = false;
+        // Stop all wave-related timers
+        this.waveTimers.forEach(timer => timer.destroy());
+        this.waveTimers = [];
+        // Stop the pending next-wave timer if it exists
+        if (this.nextWaveTimer) {
+            this.nextWaveTimer.remove();
+            this.nextWaveTimer = null;
+        }
+        console.log('LevelManager received GAME_OVER event. Halting all operations.');
     }
 
     onPreviousWaveRequested() {
@@ -50,9 +67,15 @@ export default class LevelManager {
     }
 
     startWave(waveIndex) {
-        // Clear any active timers from the previous wave
+        if (this.isGameOver) return;
+
+        // Clear any active timers from the previous wave, including the next-wave timer
         this.waveTimers.forEach(timer => timer.destroy());
         this.waveTimers = [];
+        if (this.nextWaveTimer) {
+            this.nextWaveTimer.remove();
+            this.nextWaveTimer = null;
+        }
 
         // Clear all existing enemies from the previous wave
         EventManager.emit('WAVE_CLEAR', { level: this.currentLevel, wave: this.currentWaveIndex + 1 });
@@ -94,6 +117,8 @@ export default class LevelManager {
     }
 
     startNextWave() {
+        if (this.isGameOver) return;
+
         if (this.currentWaveIndex < this.levelData.waves.length - 1) {
             this.startWave(this.currentWaveIndex + 1);
         } else {
@@ -103,7 +128,7 @@ export default class LevelManager {
     }
 
     update() {
-        if (!this.isWaveActive) return;
+        if (!this.isWaveActive || this.isGameOver) return;
 
         const totalEnemiesInWave = this.levelData.waves[this.currentWaveIndex].enemies.reduce((total, group) => total + group.count, 0);
 
@@ -117,7 +142,7 @@ export default class LevelManager {
                 const waveData = this.levelData.waves[this.currentWaveIndex];
                 // Automatically start the next wave after the specified delay
                 if (this.currentWaveIndex < this.levelData.waves.length - 1) {
-                    this.scene.time.delayedCall(waveData.delayAfterWave, this.startNextWave, [], this);
+                    this.nextWaveTimer = this.scene.time.delayedCall(waveData.delayAfterWave, this.startNextWave, [], this);
                 }
             }
         }
@@ -125,8 +150,12 @@ export default class LevelManager {
 
     destroy() {
         EventManager.off('TOWER_SPAWNED', this.onTowerSpawned, this);
+        EventManager.off('GAME_OVER', this.onGameOver, this);
         EventManager.off('PREVIOUS_WAVE_REQUESTED', this.onPreviousWaveRequested, this);
         EventManager.off('NEXT_WAVE_REQUESTED', this.onNextWaveRequested, this);
         this.waveTimers.forEach(timer => timer.destroy());
+        if (this.nextWaveTimer) {
+            this.nextWaveTimer.remove();
+        }
     }
 }

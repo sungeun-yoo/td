@@ -156,6 +156,50 @@ export default class UIManager {
         });
     }
 
+    showGameOverScreen() {
+        // Create a semi-transparent overlay
+        const overlay = document.createElement('div');
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.zIndex = '100'; // Ensure it's on top
+        document.body.appendChild(overlay);
+
+        // "GAME OVER" text
+        const gameOverText = document.createElement('h1');
+        gameOverText.innerText = 'GAME OVER';
+        gameOverText.style.color = 'white';
+        gameOverText.style.fontSize = '72px';
+        gameOverText.style.fontFamily = '"Arial Black"';
+        gameOverText.style.textShadow = '4px 4px 8px #000';
+        overlay.appendChild(gameOverText);
+
+        // Restart button
+        const restartButton = document.createElement('button');
+        restartButton.innerText = '다시 시작';
+        restartButton.style.marginTop = '20px';
+        restartButton.style.padding = '15px 30px';
+        restartButton.style.fontSize = '24px';
+        restartButton.style.cursor = 'pointer';
+        restartButton.style.border = '2px solid white';
+        restartButton.style.borderRadius = '10px';
+        restartButton.style.backgroundColor = '#333';
+        restartButton.style.color = 'white';
+        overlay.appendChild(restartButton);
+
+        // Add event listener to reload the page on click
+        restartButton.addEventListener('click', () => {
+            window.location.reload();
+        });
+    }
+
     destroy() {
         // Clean up the global event listener
         EventManager.off('WAVE_START', this.onWaveStart, this);

@@ -54,7 +54,8 @@ export default class Tower extends BaseGameObject {
         let closestDistance = Infinity;
 
         this.enemiesGroup.getChildren().forEach(enemy => {
-            if (enemy.active) {
+            // Target must be active and not in the process of dying.
+            if (enemy.active && !enemy.isDying) {
                 const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
                 if (distance < closestDistance) {
                     closestDistance = distance;
