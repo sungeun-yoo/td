@@ -8,6 +8,7 @@ export default class LevelManager {
         this.currentLevel = 0;
         this.currentWaveIndex = -1;
         this.waveTimers = [];
+        this.nextWaveTimer = null;
 
         this.enemiesSpawnedThisWave = 0;
         this.isWaveActive = false;
@@ -30,6 +31,11 @@ export default class LevelManager {
         // Stop all wave-related timers
         this.waveTimers.forEach(timer => timer.destroy());
         this.waveTimers = [];
+        // Stop the pending next-wave timer if it exists
+        if (this.nextWaveTimer) {
+            this.nextWaveTimer.remove();
+            this.nextWaveTimer = null;
+        }
         console.log('LevelManager received GAME_OVER event. Halting all operations.');
     }
 
@@ -63,9 +69,13 @@ export default class LevelManager {
     startWave(waveIndex) {
         if (this.isGameOver) return;
 
-        // Clear any active timers from the previous wave
+        // Clear any active timers from the previous wave, including the next-wave timer
         this.waveTimers.forEach(timer => timer.destroy());
         this.waveTimers = [];
+        if (this.nextWaveTimer) {
+            this.nextWaveTimer.remove();
+            this.nextWaveTimer = null;
+        }
 
         // Clear all existing enemies from the previous wave
         EventManager.emit('WAVE_CLEAR', { level: this.currentLevel, wave: this.currentWaveIndex + 1 });
@@ -132,7 +142,7 @@ export default class LevelManager {
                 const waveData = this.levelData.waves[this.currentWaveIndex];
                 // Automatically start the next wave after the specified delay
                 if (this.currentWaveIndex < this.levelData.waves.length - 1) {
-                    this.scene.time.delayedCall(waveData.delayAfterWave, this.startNextWave, [], this);
+                    this.nextWaveTimer = this.scene.time.delayedCall(waveData.delayAfterWave, this.startNextWave, [], this);
                 }
             }
         }
@@ -144,5 +154,8 @@ export default class LevelManager {
         EventManager.off('PREVIOUS_WAVE_REQUESTED', this.onPreviousWaveRequested, this);
         EventManager.off('NEXT_WAVE_REQUESTED', this.onNextWaveRequested, this);
         this.waveTimers.forEach(timer => timer.destroy());
+        if (this.nextWaveTimer) {
+            this.nextWaveTimer.remove();
+        }
     }
 }
