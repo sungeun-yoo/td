@@ -98,10 +98,19 @@ export default class BaseEnemy extends BaseGameObject {
     }
 
     takeDamage(amount) {
+        if (!this.active) {
+            return; // Don't take damage if already dying
+        }
+
         this.health -= amount;
         console.log(`'${this.enemyData.name}' took ${amount} damage, health is now ${this.health}`);
 
-        if (this.health <= 0 && this.active) {
+        if (this.health <= 0) {
+            // Immediately hide the enemy and disable its physics body
+            this.setVisible(false);
+            this.body.enable = false;
+
+            // Play the death effect and destroy the object once the effect is complete
             this.playEffect(DeathEffect, this.enemyData.color).on('complete', () => {
                 this.destroy();
             });
