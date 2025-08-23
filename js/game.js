@@ -30,6 +30,7 @@ class GameScene extends Phaser.Scene {
         // Listen for the tower's destruction to signal game over
         this.tower.on('destroy', () => {
             EventManager.emit('GAME_OVER');
+            this.uiManager.showGameOverScreen();
             console.log("--- GAME OVER ---");
         });
 
