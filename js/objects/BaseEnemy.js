@@ -83,7 +83,7 @@ export default class BaseEnemy extends BaseGameObject {
             this.body.setVelocity(direction.x * this.speed, direction.y * this.speed);
 
             if (distanceToTarget < 30) {
-                 this.destroy(); // Melee units are destroyed on impact
+                 this.die(); // Melee units die on impact
             }
         } else if (attackType === 'ranged') {
             const attackRange = 250;
@@ -113,18 +113,25 @@ export default class BaseEnemy extends BaseGameObject {
         console.log(`'${this.enemyData.name}' took ${amount} damage, health is now ${this.health}`);
 
         if (this.health <= 0) {
-            this.isDying = true;
-
-            // Immediately hide the enemy and disable its physics body
-            this.setVisible(false);
-            this.body.enable = false;
-
-            // Play the death effect. The update loop will handle the final destruction.
-            this.playEffect(DeathEffect, this.enemyData.color);
+            this.die();
         } else {
             // Optional: Play a hit effect if not dead
             // this.playEffect(HitEffect);
         }
+    }
+
+    die() {
+        if (this.isDying) {
+            return;
+        }
+        this.isDying = true;
+
+        // Immediately hide the enemy and disable its physics body
+        this.setVisible(false);
+        this.body.enable = false;
+
+        // Play the death effect. The update loop will handle the final destruction.
+        this.playEffect(DeathEffect, this.enemyData.color);
     }
 
     onWaveClear() {
