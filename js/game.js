@@ -53,6 +53,10 @@ class GameScene extends Phaser.Scene {
             }
         });
 
+        // Listen for boss events
+        EventManager.on('BOSS_SPAWNED', this.onBossSpawned, this);
+        EventManager.on('BOSS_DEFEATED', this.onBossDefeated, this);
+
         // --- Level Manager ---
         this.levelManager = new LevelManager(this);
         // LevelManager waits for TOWER_SPAWNED event to start the first wave
@@ -125,6 +129,32 @@ class GameScene extends Phaser.Scene {
         if (this.levelManager) {
             this.levelManager.update(time, delta);
         }
+    }
+
+    onBossSpawned() {
+        console.log("Boss Spawned! Zooming out.");
+        this.cameras.main.zoomTo(0.6, 2000, 'Sine.easeInOut');
+    }
+
+    onBossDefeated() {
+        console.log("Boss Defeated! Zooming in.");
+        // Effect: Camera Shake
+        this.cameras.main.shake(500, 0.01);
+
+        // Zoom back in after the shake
+        this.time.delayedCall(500, () => {
+            this.cameras.main.zoomTo(1, 1000, 'Sine.easeInOut');
+        });
+    }
+
+    shutdown() {
+        EventManager.off('BOSS_SPAWNED', this.onBossSpawned, this);
+        EventManager.off('BOSS_DEFEATED', this.onBossDefeated, this);
+        EventManager.off('ENEMY_DESTROYED'); // We didn't use a named function for this one in create(), so we might need to be careful.
+        // Actually, in create() it was:
+        // EventManager.on('ENEMY_DESTROYED', (data) => { ... });
+        // This is an anonymous function, so we can't easily remove it unless we store the reference.
+        // For now, I'll just remove the boss listeners which I added with named functions.
     }
 }
 

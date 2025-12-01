@@ -63,22 +63,26 @@ export default class LevelManager {
         const difficultyMultiplier = 1 + ((this.currentWave - 1) * 0.1); // Gradual difficulty increase
 
         this.currentWaveData.enemies.forEach(enemyGroup => {
-            const timer = this.scene.time.addEvent({
-                delay: enemyGroup.spawnDelay,
-                repeat: enemyGroup.count - 1,
-                callback: () => {
-                    if (this.isWaveActive) {
-                        this.scene.spawnEnemy(enemyGroup.type, difficultyMultiplier);
-                        this.enemiesSpawnedThisWave++;
-                    }
-                }
-            });
             // Spawn first immediately
             if (this.isWaveActive) {
                 this.scene.spawnEnemy(enemyGroup.type, difficultyMultiplier);
                 this.enemiesSpawnedThisWave++;
             }
-            this.waveTimers.push(timer);
+
+            // Schedule the rest
+            if (enemyGroup.count > 1) {
+                const timer = this.scene.time.addEvent({
+                    delay: enemyGroup.spawnDelay,
+                    repeat: enemyGroup.count - 2, // repeat is number of *additional* times. Total runs = 1 + repeat. We want count-1 runs. So 1 + repeat = count - 1 => repeat = count - 2.
+                    callback: () => {
+                        if (this.isWaveActive) {
+                            this.scene.spawnEnemy(enemyGroup.type, difficultyMultiplier);
+                            this.enemiesSpawnedThisWave++;
+                        }
+                    }
+                });
+                this.waveTimers.push(timer);
+            }
         });
     }
 

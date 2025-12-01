@@ -83,6 +83,7 @@ export const ENEMY_DATA = {
             spawnType: 'enemy_type_4', // Spawns Swarmers
             spawnRate: 2000 // Every 2 seconds
         },
-        goldReward: 500
+        goldReward: 500,
+        isBoss: true
     }
 };

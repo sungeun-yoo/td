@@ -28,6 +28,10 @@ export default class BaseEnemy extends BaseGameObject {
 
         console.log(`Spawned ${this.enemyData.name} with Health: ${this.health}, Gold Reward: ${this.goldReward}`);
 
+        if (this.enemyData.isBoss) {
+            EventManager.emit('BOSS_SPAWNED', { enemy: this });
+        }
+
         // --- Procedural Graphics ---
 
         // --- Procedural Graphics ---
@@ -238,6 +242,10 @@ export default class BaseEnemy extends BaseGameObject {
             color: this.enemyData.color,
             gold: this.goldReward
         });
+
+        if (this.enemyData.isBoss) {
+            EventManager.emit('BOSS_DEFEATED', { x: this.x, y: this.y });
+        }
 
         // Play the death effect. The update loop will handle the final destruction.
         this.playEffect(DeathEffect, this.enemyData.color);
