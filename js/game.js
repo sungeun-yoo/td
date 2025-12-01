@@ -3,6 +3,9 @@ import BaseEnemy from './objects/BaseEnemy.js';
 import BaseProjectile from './objects/BaseProjectile.js';
 import LevelManager from './managers/LevelManager.js';
 import UIManager from './managers/UIManager.js';
+import ParticleManager from './managers/ParticleManager.js';
+import FloatingTextManager from './managers/FloatingTextManager.js';
+import SoundManager from './managers/SoundManager.js';
 import { EventManager } from './managers/EventManager.js';
 
 class GameScene extends Phaser.Scene {
@@ -13,6 +16,10 @@ class GameScene extends Phaser.Scene {
         this.projectiles = null;
         this.levelManager = null;
         this.uiManager = null;
+        this.particleManager = null;
+        this.floatingTextManager = null;
+        this.soundManager = null;
+        this.gold = 100; // Start with 100 gold
     }
 
     create() {
@@ -26,12 +33,24 @@ class GameScene extends Phaser.Scene {
         this.tower = new Tower(this, towerX, towerY, this.enemies);
 
         // --- Managers ---
+        // Initialize ParticleManager early so it's ready for events
+        this.particleManager = new ParticleManager(this);
+        this.floatingTextManager = new FloatingTextManager(this);
+        this.soundManager = new SoundManager(this);
         this.uiManager = new UIManager(this);
+
         // Listen for the tower's destruction to signal game over
         this.tower.on('destroy', () => {
             EventManager.emit('GAME_OVER');
             this.uiManager.showGameOverScreen();
             console.log("--- GAME OVER ---");
+        });
+
+        // Listen for enemy destruction to add gold
+        EventManager.on('ENEMY_DESTROYED', (data) => {
+            if (data.gold) {
+                this.addGold(data.gold);
+            }
         });
 
         // --- Level Manager ---
@@ -48,15 +67,15 @@ class GameScene extends Phaser.Scene {
         });
 
         this.physics.add.overlap(this.tower, this.projectiles, (tower, projectile) => {
-             if (tower.active && projectile.active) {
+            if (tower.active && projectile.active) {
                 tower.takeDamage(projectile.damage);
                 projectile.destroy();
-             }
+            }
         });
     }
 
     // This method is now a helper called by LevelManager
-    spawnEnemy(enemyType) {
+    spawnEnemy(enemyType, difficultyMultiplier = 1) {
         const spawnMargin = 50;
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
@@ -83,8 +102,14 @@ class GameScene extends Phaser.Scene {
                 break;
         }
 
-        const enemy = new BaseEnemy(this, x, y, enemyType, this.tower);
+        const enemy = new BaseEnemy(this, x, y, enemyType, this.tower, difficultyMultiplier);
         this.enemies.add(enemy, true);
+    }
+
+    addGold(amount) {
+        this.gold += amount;
+        EventManager.emit('GOLD_UPDATED', this.gold);
+        console.log(`Gold added: ${amount}. Total: ${this.gold}`);
     }
 
     update(time, delta) {

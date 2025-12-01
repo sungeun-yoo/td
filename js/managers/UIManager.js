@@ -8,122 +8,120 @@ export default class UIManager {
     }
 
     setupUI() {
-        // Create a container for the controls
-        const controlsContainer = document.createElement('div');
-        controlsContainer.style.position = 'absolute';
-        controlsContainer.style.top = '10px';
-        controlsContainer.style.right = '10px';
-        controlsContainer.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        controlsContainer.style.padding = '10px';
-        controlsContainer.style.borderRadius = '5px';
-        controlsContainer.style.color = 'white';
-        controlsContainer.style.width = '200px';
-        document.body.appendChild(controlsContainer);
+        // --- Gold Display ---
+        this.goldText = this.scene.add.text(20, 20, 'Gold: 0', {
+            fontFamily: 'Arial',
+            fontSize: '32px',
+            color: '#FFD700', // Gold color
+            stroke: '#000000',
+            strokeThickness: 4
+        });
+        this.goldText.setScrollFactor(0); // Fix to camera
 
-        // Attack Speed Slider
-        const speedLabel = document.createElement('label');
-        speedLabel.htmlFor = 'speed-slider';
-        speedLabel.innerText = 'Attack Speed';
-        controlsContainer.appendChild(speedLabel);
+        // --- Upgrade Container ---
+        const upgradeContainer = document.createElement('div');
+        upgradeContainer.style.position = 'absolute';
+        upgradeContainer.style.bottom = '20px';
+        upgradeContainer.style.left = '50%';
+        upgradeContainer.style.transform = 'translateX(-50%)';
+        upgradeContainer.style.display = 'flex';
+        upgradeContainer.style.gap = '10px';
+        document.body.appendChild(upgradeContainer);
+        this.upgradeContainer = upgradeContainer;
 
-        const speedSlider = document.createElement('input');
-        speedSlider.type = 'range';
-        speedSlider.id = 'speed-slider';
-        speedSlider.min = '100';
-        speedSlider.max = '1000';
-        speedSlider.value = this.scene.tower.attackSpeed;
-        speedSlider.style.width = '100%';
-        controlsContainer.appendChild(speedSlider);
+        // Create Upgrade Buttons
+        this.createUpgradeButton('damage', 'Damage', upgradeContainer);
+        this.createUpgradeButton('speed', 'Speed', upgradeContainer);
+        this.createUpgradeButton('range', 'Range', upgradeContainer);
 
-        const speedValueLabel = document.createElement('span');
-        speedValueLabel.innerText = speedSlider.value;
-        controlsContainer.appendChild(speedValueLabel);
+        // --- Wave Info ---
+        this.waveText = this.scene.add.text(this.scene.cameras.main.width - 20, 20, 'Wave: 1', {
+            fontFamily: 'Arial',
+            fontSize: '24px',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 2
+        });
+        this.waveText.setOrigin(1, 0);
+        this.waveText.setScrollFactor(0);
 
-        speedSlider.addEventListener('input', (event) => {
-            const newSpeed = parseInt(event.target.value, 10);
-            this.scene.tower.attackSpeed = newSpeed;
-            speedValueLabel.innerText = newSpeed;
+        // Listen for Gold Updates
+        EventManager.on('GOLD_UPDATED', this.updateGoldDisplay, this);
+    }
+
+    createUpgradeButton(type, label, container) {
+        const button = document.createElement('button');
+        button.id = `btn-upgrade-${type}`;
+        button.style.padding = '10px 20px';
+        button.style.fontSize = '16px';
+        button.style.cursor = 'pointer';
+        button.style.backgroundColor = '#444';
+        button.style.color = 'white';
+        button.style.border = '2px solid #666';
+        button.style.borderRadius = '5px';
+        button.style.display = 'flex';
+        button.style.flexDirection = 'column';
+        button.style.alignItems = 'center';
+
+        const typeLabel = document.createElement('span');
+        typeLabel.innerText = label;
+        typeLabel.style.fontWeight = 'bold';
+        button.appendChild(typeLabel);
+
+        const costLabel = document.createElement('span');
+        costLabel.id = `cost-${type}`;
+        costLabel.innerText = '50 G';
+        costLabel.style.fontSize = '12px';
+        costLabel.style.color = '#FFD700';
+        button.appendChild(costLabel);
+
+        button.addEventListener('click', () => {
+            this.tryBuyUpgrade(type);
         });
 
-        // Attack Range Slider
-        const rangeLabel = document.createElement('label');
-        rangeLabel.htmlFor = 'range-slider';
-        rangeLabel.innerText = 'Attack Range';
-        rangeLabel.style.marginTop = '10px';
-        rangeLabel.style.display = 'block';
-        controlsContainer.appendChild(rangeLabel);
+        container.appendChild(button);
+    }
 
-        const rangeSlider = document.createElement('input');
-        rangeSlider.type = 'range';
-        rangeSlider.id = 'range-slider';
-        rangeSlider.min = '100';
-        rangeSlider.max = '500';
-        rangeSlider.value = this.scene.tower.attackRange;
-        rangeSlider.style.width = '100%';
-        controlsContainer.appendChild(rangeSlider);
+    updateGoldDisplay(amount) {
+        this.goldText.setText(`Gold: ${amount}`);
+        this.updateUpgradeButtons();
+    }
 
-        const rangeValueLabel = document.createElement('span');
-        rangeValueLabel.innerText = rangeSlider.value;
-        controlsContainer.appendChild(rangeValueLabel);
+    updateUpgradeButtons() {
+        if (!this.scene.tower) return;
 
-        rangeSlider.addEventListener('input', (event) => {
-            const newRange = parseInt(event.target.value, 10);
-            this.scene.tower.attackRange = newRange;
-            if (this.scene.tower.updateAttackRangeCircle) {
-                this.scene.tower.updateAttackRangeCircle(newRange);
+        ['damage', 'speed', 'range'].forEach(type => {
+            const cost = this.scene.tower.getUpgradeCost(type);
+            const button = document.getElementById(`btn-upgrade-${type}`);
+            const costLabel = document.getElementById(`cost-${type}`);
+
+            if (button && costLabel) {
+                costLabel.innerText = `${cost} G`;
+
+                if (this.scene.gold >= cost) {
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                    button.style.backgroundColor = '#2ecc71'; // Green
+                } else {
+                    button.disabled = true;
+                    button.style.opacity = '0.5';
+                    button.style.backgroundColor = '#444';
+                }
             }
-            rangeValueLabel.innerText = newRange;
         });
+    }
 
-        // Attack Damage Slider
-        const damageLabel = document.createElement('label');
-        damageLabel.htmlFor = 'damage-slider';
-        damageLabel.innerText = 'Attack Damage';
-        damageLabel.style.marginTop = '10px';
-        damageLabel.style.display = 'block';
-        controlsContainer.appendChild(damageLabel);
+    tryBuyUpgrade(type) {
+        const cost = this.scene.tower.getUpgradeCost(type);
+        if (this.scene.gold >= cost) {
+            this.scene.gold -= cost;
+            this.scene.tower.upgrade(type);
+            this.updateGoldDisplay(this.scene.gold); // Update UI immediately
+            EventManager.emit('GOLD_UPDATED', this.scene.gold); // Sync
 
-        const damageSlider = document.createElement('input');
-        damageSlider.type = 'range';
-        damageSlider.id = 'damage-slider';
-        damageSlider.min = '10';
-        damageSlider.max = '100';
-        damageSlider.value = this.scene.tower.attackDamage;
-        damageSlider.style.width = '100%';
-        controlsContainer.appendChild(damageSlider);
-
-        const damageValueLabel = document.createElement('span');
-        damageValueLabel.innerText = damageSlider.value;
-        controlsContainer.appendChild(damageValueLabel);
-
-        damageSlider.addEventListener('input', (event) => {
-            const newDamage = parseInt(event.target.value, 10);
-            this.scene.tower.attackDamage = newDamage;
-            damageValueLabel.innerText = newDamage;
-        });
-
-        // Wave Navigation Buttons
-        const waveNavContainer = document.createElement('div');
-        waveNavContainer.style.marginTop = '20px';
-        waveNavContainer.style.display = 'flex';
-        waveNavContainer.style.justifyContent = 'space-between';
-        controlsContainer.appendChild(waveNavContainer);
-
-        const prevWaveButton = document.createElement('button');
-        prevWaveButton.innerText = 'Prev Wave';
-        waveNavContainer.appendChild(prevWaveButton);
-
-        const nextWaveButton = document.createElement('button');
-        nextWaveButton.innerText = 'Next Wave';
-        waveNavContainer.appendChild(nextWaveButton);
-
-        prevWaveButton.addEventListener('click', () => {
-            EventManager.emit('PREVIOUS_WAVE_REQUESTED');
-        });
-
-        nextWaveButton.addEventListener('click', () => {
-            EventManager.emit('NEXT_WAVE_REQUESTED');
-        });
+            // Play upgrade sound (placeholder)
+            // this.scene.soundManager.playUpgradeSound();
+        }
     }
 
     onWaveStart(waveData) {
@@ -203,5 +201,9 @@ export default class UIManager {
     destroy() {
         // Clean up the global event listener
         EventManager.off('WAVE_START', this.onWaveStart, this);
+        EventManager.off('GOLD_UPDATED', this.updateGoldDisplay, this);
+        if (this.upgradeContainer) {
+            this.upgradeContainer.remove();
+        }
     }
 }

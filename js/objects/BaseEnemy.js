@@ -5,18 +5,23 @@ import { EventManager } from '../managers/EventManager.js';
 import DeathEffect from '../effects/DeathEffect.js';
 
 export default class BaseEnemy extends BaseGameObject {
-    constructor(scene, x, y, enemyType, target) {
+    constructor(scene, x, y, enemyType, target, difficultyMultiplier = 1) {
         super(scene, x, y);
 
         this.enemyData = ENEMY_DATA[enemyType];
         this.target = target;
         this.isDying = false;
+        this.goldReward = Math.ceil((this.enemyData.goldReward || 10) * difficultyMultiplier);
 
         // --- Stats from Data ---
-        this.health = this.enemyData.health;
+        this.health = this.enemyData.health * difficultyMultiplier;
         this.speed = this.enemyData.speed;
         this.attackData = this.enemyData.attack;
         this.lastAttackTime = 0;
+
+        console.log(`Spawned ${this.enemyData.name} with Health: ${this.health}, Gold Reward: ${this.goldReward}`);
+
+        // --- Procedural Graphics ---
 
         // --- Procedural Graphics ---
         this.drawShape();
@@ -83,7 +88,7 @@ export default class BaseEnemy extends BaseGameObject {
             this.body.setVelocity(direction.x * this.speed, direction.y * this.speed);
 
             if (distanceToTarget < 30) {
-                 this.die(); // Melee units die on impact
+                this.die(); // Melee units die on impact
             }
         } else if (attackType === 'ranged') {
             const attackRange = 250;
@@ -112,6 +117,8 @@ export default class BaseEnemy extends BaseGameObject {
         this.health -= amount;
         console.log(`'${this.enemyData.name}' took ${amount} damage, health is now ${this.health}`);
 
+        EventManager.emit('ENEMY_HIT', { x: this.x, y: this.y, damage: amount });
+
         if (this.health <= 0) {
             this.die();
         } else {
@@ -129,6 +136,13 @@ export default class BaseEnemy extends BaseGameObject {
         // Immediately hide the enemy and disable its physics body
         this.setVisible(false);
         this.body.enable = false;
+
+        EventManager.emit('ENEMY_DESTROYED', {
+            x: this.x,
+            y: this.y,
+            color: this.enemyData.color,
+            gold: this.goldReward
+        });
 
         // Play the death effect. The update loop will handle the final destruction.
         this.playEffect(DeathEffect, this.enemyData.color);

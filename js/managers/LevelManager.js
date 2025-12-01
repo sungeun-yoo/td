@@ -96,20 +96,22 @@ export default class LevelManager {
         EventManager.emit('WAVE_START', { level: this.currentLevel, wave: this.currentWaveIndex + 1 });
         console.log(`--- Starting Wave ${this.currentWaveIndex + 1}: ${waveData.waveName} ---`);
 
+        const difficultyMultiplier = 1 + (this.currentWaveIndex * 0.2);
+
         waveData.enemies.forEach(enemyGroup => {
             const timer = this.scene.time.addEvent({
                 delay: enemyGroup.spawnDelay,
-                repeat: enemyGroup.count -1, // Repeat is N-1 times
+                repeat: enemyGroup.count - 1, // Repeat is N-1 times
                 callback: () => {
                     if (this.isWaveActive) {
-                        this.scene.spawnEnemy(enemyGroup.type);
+                        this.scene.spawnEnemy(enemyGroup.type, difficultyMultiplier);
                         this.enemiesSpawnedThisWave++;
                     }
                 }
             });
             // Spawn the first one immediately
             if (this.isWaveActive) {
-                this.scene.spawnEnemy(enemyGroup.type);
+                this.scene.spawnEnemy(enemyGroup.type, difficultyMultiplier);
                 this.enemiesSpawnedThisWave++;
             }
             this.waveTimers.push(timer);

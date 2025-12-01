@@ -39,10 +39,23 @@ export default class Tower extends BaseGameObject {
 
         // --- Properties ---
         this.energy = 100;
-        this.attackDamage = 20; // Doubled from 10
+        this.attackDamage = 25; // Buffed from 20
         this.attackRange = 270;
-        this.attackSpeed = 500; // Halved from 1000 to double the speed
+        this.attackSpeed = 400; // Buffed from 500
         this.lastAttackTime = 0;
+
+        // --- Upgrade Levels ---
+        this.upgradeLevels = {
+            damage: 1,
+            range: 1,
+            speed: 1
+        };
+
+        this.upgradeCosts = {
+            damage: 50,
+            range: 50,
+            speed: 50
+        };
 
         // --- Spawn Effect ---
         this.spawnEffect = this.playEffect(TowerSummonEffect);
@@ -104,6 +117,8 @@ export default class Tower extends BaseGameObject {
             target.takeDamage(this.attackDamage);
         }
 
+        EventManager.emit('TOWER_SHOOT', { x: this.x, y: this.y });
+
         // 2. Create visual effect (a temporary laser line)
         const laser = this.scene.add.graphics();
         laser.lineStyle(2, 0xffffff, 0.8);
@@ -139,6 +154,32 @@ export default class Tower extends BaseGameObject {
             this.destroy();
         } else {
             this.playHitEffect();
+            EventManager.emit('TOWER_HIT', { x: this.x, y: this.y });
+        }
+    }
+    getUpgradeCost(type) {
+        // Simple linear cost scaling: Base + (Level * 25)
+        const baseCost = 50;
+        return baseCost + (this.upgradeLevels[type] - 1) * 25;
+    }
+
+    upgrade(type) {
+        this.upgradeLevels[type]++;
+
+        switch (type) {
+            case 'damage':
+                this.attackDamage += 5;
+                console.log(`Upgraded Damage to ${this.attackDamage}`);
+                break;
+            case 'range':
+                this.attackRange += 20;
+                this.updateAttackRangeCircle(this.attackRange);
+                console.log(`Upgraded Range to ${this.attackRange}`);
+                break;
+            case 'speed':
+                this.attackSpeed = Math.max(100, this.attackSpeed - 50); // Cap at 100ms
+                console.log(`Upgraded Speed to ${this.attackSpeed}`);
+                break;
         }
     }
 }
