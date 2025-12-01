@@ -1,6 +1,7 @@
 import BaseGameObject from './BaseGameObject.js';
 import TowerSummonEffect from '../effects/TowerSummonEffect.js';
 import { EventManager } from '../managers/EventManager.js';
+import { RangedWeapon, MeleeWeapon } from './Weapon.js';
 
 export default class Tower extends BaseGameObject {
     constructor(scene, x, y, enemiesGroup) {
@@ -39,49 +40,30 @@ export default class Tower extends BaseGameObject {
 
         // --- Properties ---
         this.energy = 100;
-        this.attackDamage = 25; // Buffed from 20
-        this.attackRange = 270;
-        this.attackSpeed = 400; // Buffed from 500
-        this.lastAttackTime = 0;
 
-        // --- Upgrade Levels ---
+        // Weapon System
+        this.weaponSlots = [];
+        this.addWeapon('default_weapon'); // Initialize with default weapon
+
+        // --- Upgrade Levels (Kept for UI compatibility, but delegates to default weapon) ---
+        // These now track the *Default Weapon's* upgrade levels
         this.upgradeLevels = {
             damage: 1,
             range: 1,
             speed: 1
         };
 
-        this.upgradeCosts = {
-            damage: 50,
-            range: 50,
-            speed: 50
-        };
+        // Costs are now retrieved from the weapon itself, but we keep this structure if needed for UI
+        // actually UI calls getUpgradeCost, so we can remove this hardcoded object if we update getUpgradeCost.
+        // But let's keep it simple.
+
 
         // --- Spawn Effect ---
         this.spawnEffect = this.playEffect(TowerSummonEffect);
         this.setVisible(false);
     }
 
-    findTarget() {
-        let closestEnemy = null;
-        let closestDistance = Infinity;
-
-        this.enemiesGroup.getChildren().forEach(enemy => {
-            // Target must be active and not in the process of dying.
-            if (enemy.active && !enemy.isDying) {
-                const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    closestEnemy = enemy;
-                }
-            }
-        });
-
-        if (closestDistance <= this.attackRange) {
-            return closestEnemy;
-        }
-        return null;
-    }
+    // findTarget() removed - handled by Weapon classes
 
     update(time, delta) {
         super.update(time, delta);
@@ -96,12 +78,21 @@ export default class Tower extends BaseGameObject {
             return;
         }
 
-        const target = this.findTarget();
-        if (target) {
-            if (time > this.lastAttackTime + this.attackSpeed) {
-                this.attack(target);
-                this.lastAttackTime = time;
-            }
+        // Update all weapons
+        this.weaponSlots.forEach(weapon => weapon.update(time, delta));
+    }
+
+    addWeapon(type) {
+        let weapon;
+        if (type === 'default_weapon') {
+            weapon = new RangedWeapon(this.scene, this, type);
+        } else if (type === 'melee_weapon') {
+            weapon = new MeleeWeapon(this.scene, this, type);
+        }
+
+        if (weapon) {
+            this.weaponSlots.push(weapon);
+            console.log(`Added weapon: ${type}`);
         }
     }
 
@@ -111,30 +102,7 @@ export default class Tower extends BaseGameObject {
         this.attackRangeCircle.strokeCircle(0, 0, newRange);
     }
 
-    attack(target) {
-        // 1. Inflict damage on the target
-        if (target && target.active && typeof target.takeDamage === 'function') {
-            target.takeDamage(this.attackDamage);
-        }
-
-        EventManager.emit('TOWER_SHOOT', { x: this.x, y: this.y });
-
-        // 2. Create visual effect (a temporary laser line)
-        const laser = this.scene.add.graphics();
-        laser.lineStyle(2, 0xffffff, 0.8);
-        laser.lineBetween(this.x, this.y, target.x, target.y);
-
-        // Use a tween to make the laser fade out and then destroy itself
-        this.scene.tweens.add({
-            targets: laser,
-            alpha: 0,
-            duration: 200, // Laser beam lasts for 0.2 seconds
-            ease: 'Sine.easeOut',
-            onComplete: () => {
-                laser.destroy();
-            }
-        });
-    }
+    // attack(target) removed - handled by Weapon classes
 
     playHitEffect() {
         console.log(`Tower at (${Math.round(this.x)}, ${Math.round(this.y)}) was hit!`);
@@ -158,28 +126,24 @@ export default class Tower extends BaseGameObject {
         }
     }
     getUpgradeCost(type) {
-        // Simple linear cost scaling: Base + (Level * 25)
-        const baseCost = 50;
-        return baseCost + (this.upgradeLevels[type] - 1) * 25;
+        // Delegate to default weapon for basic stats
+        if (this.weaponSlots.length > 0) {
+            return this.weaponSlots[0].getUpgradeCost(type);
+        }
+        return 0;
     }
 
     upgrade(type) {
         this.upgradeLevels[type]++;
 
-        switch (type) {
-            case 'damage':
-                this.attackDamage += 5;
-                console.log(`Upgraded Damage to ${this.attackDamage}`);
-                break;
-            case 'range':
-                this.attackRange += 20;
-                this.updateAttackRangeCircle(this.attackRange);
-                console.log(`Upgraded Range to ${this.attackRange}`);
-                break;
-            case 'speed':
-                this.attackSpeed = Math.max(100, this.attackSpeed - 50); // Cap at 100ms
-                console.log(`Upgraded Speed to ${this.attackSpeed}`);
-                break;
+        // Delegate to default weapon
+        if (this.weaponSlots.length > 0) {
+            this.weaponSlots[0].upgrade(type);
+
+            // If range upgraded, update visual circle
+            if (type === 'range') {
+                this.updateAttackRangeCircle(this.weaponSlots[0].data.range);
+            }
         }
     }
 

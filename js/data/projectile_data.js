@@ -7,6 +7,11 @@ export const PROJECTILE_DATA = {
             type: 'circle',
             radius: 5
         },
-        color: 0xffff00 // Fluorescent yellow
+        color: 0xffff00, // Fluorescent yellow
+        effects: {
+            slowChance: 0,
+            knockbackChance: 0,
+            chainChance: 0
+        }
     }
 };

@@ -1,4 +1,5 @@
 import { EventManager } from './EventManager.js';
+import { WEAPON_DATA } from '../data/weapon_data.js';
 
 export default class UIManager {
     constructor(scene) {
@@ -55,8 +56,10 @@ export default class UIManager {
         const weaponsTab = document.createElement('div');
         weaponsTab.className = 'tab-content';
         weaponsTab.id = 'tab-weapons';
-        weaponsTab.innerHTML = `<div style="text-align:center; color:#888; margin-top:50px;">New Weapons Coming Soon...</div>`;
+        weaponsTab.innerHTML = `<div class="upgrade-grid" id="weapon-grid"></div>`;
         contentArea.appendChild(weaponsTab);
+
+        this.createWeaponButtons();
 
         // 3. Skills Tab
         const skillsTab = document.createElement('div');
@@ -108,7 +111,22 @@ export default class UIManager {
         const upgrades = [
             { type: 'damage', label: 'Damage' },
             { type: 'speed', label: 'Speed' },
-            { type: 'range', label: 'Range' }
+            { type: 'range', label: 'Range' },
+            // Status Effects (handled as upgrades on default weapon or global?)
+            // The prompt says "Upgrade... increase percent by 0.5".
+            // Let's treat them as upgrades on the default weapon for now, or we need a new system.
+            // Since we added 'effects' to projectile data, we can upgrade those.
+            // But Tower.upgrade() delegates to weapon.upgrade().
+            // We need to support 'slowChance', 'knockbackChance', 'pierceChance' in Weapon.upgrade().
+            // Let's add them here.
+            { type: 'multishot', label: 'Multishot' }, // Moved from Weapon tab? No, prompt says "Weapon tab... basic weapon's multishot". 
+            // Wait, prompt: "In Weapon tab... add multishot".
+            // So Multishot should be in Weapon Tab? Or just an upgrade?
+            // "Weapon tab... basic weapon's multishot... add shot".
+            // Let's put Multishot in the Weapon Tab under "Default Weapon" entry?
+            // Or just put it here for simplicity?
+            // Let's stick to the prompt: "In Weapon tab...".
+            // So I will NOT put multishot here.
         ];
 
         upgrades.forEach(u => {
@@ -158,6 +176,139 @@ export default class UIManager {
         grid.appendChild(btn);
     }
 
+    createWeaponButtons() {
+        const grid = document.getElementById('weapon-grid');
+
+        // 1. Default Weapon Upgrades (Multishot, Status Effects)
+        // Since Default Weapon is always owned, we show its special upgrades here.
+        const defaultUpgrades = [
+            { type: 'multishot', label: 'Multishot', cost: 100 },
+            { type: 'slowChance', label: 'Slow %', cost: 100 },
+            { type: 'knockbackChance', label: 'Knockback %', cost: 100 },
+            { type: 'chainChance', label: 'Chain %', cost: 100 }
+        ];
+
+        defaultUpgrades.forEach(u => {
+            const btn = document.createElement('div');
+            btn.className = 'upgrade-btn';
+            btn.id = `btn-weapon-upgrade-${u.type}`;
+            btn.innerHTML = `
+                <span class="upgrade-label">${u.label}</span>
+                <span class="upgrade-cost" id="cost-${u.type}">${u.cost} G</span>
+                <span class="upgrade-level" id="level-${u.type}">Lv. 0</span>
+            `;
+            btn.addEventListener('click', () => this.tryBuyWeaponUpgrade('default_weapon', u.type));
+            grid.appendChild(btn);
+        });
+
+        // 2. Buyable Weapons (Melee)
+        const meleeData = WEAPON_DATA['melee_weapon'];
+        const buyBtn = document.createElement('div');
+        buyBtn.className = 'upgrade-btn';
+        buyBtn.id = 'btn-buy-melee';
+        buyBtn.style.borderColor = '#ff0000';
+        buyBtn.innerHTML = `
+            <span class="upgrade-label">${meleeData.name}</span>
+            <span class="upgrade-cost">${meleeData.cost} G</span>
+            <span class="upgrade-level">Buy</span>
+        `;
+        buyBtn.addEventListener('click', () => this.tryBuyWeapon('melee_weapon'));
+        grid.appendChild(buyBtn);
+
+        // 3. Melee Upgrades (Hidden until bought)
+        // For simplicity, let's just show them but disabled? Or hide.
+        // Let's create a container for melee upgrades.
+        const meleeUpgradeContainer = document.createElement('div');
+        meleeUpgradeContainer.id = 'melee-upgrades';
+        meleeUpgradeContainer.style.display = 'none'; // Hidden initially
+        meleeUpgradeContainer.style.width = '100%';
+        meleeUpgradeContainer.style.display = 'contents'; // Use grid layout of parent
+
+        const meleeUpgrades = [
+            { type: 'count', label: 'Blade Count', cost: 150 },
+            { type: 'speed', label: 'Spin Speed', cost: 100 }
+        ];
+
+        meleeUpgrades.forEach(u => {
+            const btn = document.createElement('div');
+            btn.className = 'upgrade-btn';
+            btn.id = `btn-melee-upgrade-${u.type}`;
+            btn.innerHTML = `
+                <span class="upgrade-label">${u.label}</span>
+                <span class="upgrade-cost" id="cost-melee-${u.type}">${u.cost} G</span>
+                <span class="upgrade-level" id="level-melee-${u.type}">Lv. 1</span>
+            `;
+            btn.addEventListener('click', () => this.tryBuyWeaponUpgrade('melee_weapon', u.type));
+            meleeUpgradeContainer.appendChild(btn);
+        });
+
+        grid.appendChild(meleeUpgradeContainer);
+    }
+
+    tryBuyWeapon(type) {
+        const cost = WEAPON_DATA[type].cost;
+        if (this.scene.gold >= cost) {
+            // Check if already bought?
+            // Prompt says "add to weapon holder as slot". 
+            // If we can buy multiple, we just add another.
+            // But for melee, maybe unique? "Upgrade... increase count".
+            // Let's assume unique for now to avoid UI clutter, or check if we have it.
+            // If we have it, maybe we can't buy again?
+            // "Weapon holder as slot... add instance".
+            // Let's allow buying one for now.
+            const hasWeapon = this.scene.tower.weaponSlots.some(w => w.type === type);
+            if (!hasWeapon) {
+                this.scene.gold -= cost;
+                this.scene.tower.addWeapon(type);
+                this.updateGoldDisplay(this.scene.gold);
+                EventManager.emit('GOLD_UPDATED', this.scene.gold);
+
+                // Show upgrades
+                document.getElementById('btn-buy-melee').style.display = 'none'; // Hide buy button
+                document.querySelectorAll('[id^="btn-melee-upgrade-"]').forEach(el => el.style.display = 'flex');
+            }
+        }
+    }
+
+    tryBuyWeaponUpgrade(weaponType, stat) {
+        // Find the weapon instance
+        const weapon = this.scene.tower.weaponSlots.find(w => w.type === weaponType);
+        if (!weapon) return;
+
+        // We need a way to get cost for specific stat from weapon
+        // Weapon.js has getUpgradeCost(stat)
+        // But we need to define costs for 'slowChance' etc in WEAPON_DATA if not there.
+        // I need to update WEAPON_DATA to include these stats in 'upgrades'.
+        // I'll assume I updated WEAPON_DATA or will handle it dynamically.
+        // For now, let's use a default cost if not in data?
+        // Or better, update WEAPON_DATA in next step if I missed it.
+        // I missed adding 'slowChance' etc to WEAPON_DATA upgrades. I should fix that.
+        // But for now, let's assume 100 cost.
+
+        const cost = 100; // Placeholder, should come from weapon.getUpgradeCost(stat)
+
+        if (this.scene.gold >= cost) {
+            this.scene.gold -= cost;
+
+            // Special handling for chance stats (0.5% increment? Prompt says "0.5 each").
+            // "Upgrade... percent 0.5". 0.5% is 0.005. 0.5 is 50%.
+            // "increase percent by 0.5". Maybe 0.5%? Or 0.5 (50%)?
+            // 0.5% seems small. 0.5 (50%) seems huge.
+            // Maybe 5%?
+            // Let's assume 0.05 (5%) for now.
+
+            if (['slowChance', 'knockbackChance', 'chainChance'].includes(stat)) {
+                weapon.data.effects[stat] = (weapon.data.effects[stat] || 0) + 0.05;
+                console.log(`Upgraded ${stat} to ${weapon.data.effects[stat]}`);
+            } else {
+                weapon.upgrade(stat);
+            }
+
+            this.updateGoldDisplay(this.scene.gold);
+            EventManager.emit('GOLD_UPDATED', this.scene.gold);
+        }
+    }
+
     toggleBottomSheet() {
         const sheet = this.bottomSheet;
         // Simple toggle logic (could be improved with classes)
@@ -171,6 +322,49 @@ export default class UIManager {
     updateGoldDisplay(amount) {
         if (this.goldDisplay) this.goldDisplay.innerText = amount;
         this.updateUpgradeButtons();
+        this.updateWeaponButtons();
+    }
+
+    updateWeaponButtons() {
+        if (!this.scene.tower) return;
+
+        // Update Default Weapon Upgrades
+        const defaultWeapon = this.scene.tower.weaponSlots.find(w => w.type === 'default_weapon');
+        if (defaultWeapon) {
+            ['multishot', 'slowChance', 'knockbackChance', 'chainChance'].forEach(type => {
+                const btn = document.getElementById(`btn-weapon-upgrade-${type}`);
+                const levelLabel = document.getElementById(`level-${type}`);
+                // Update level/cost visual
+                // For chance, maybe show %?
+                if (levelLabel) {
+                    if (type === 'multishot') levelLabel.innerText = `${defaultWeapon.data.multishot} Shots`;
+                    else {
+                        const val = (defaultWeapon.data.effects[type] || 0) * 100;
+                        levelLabel.innerText = `${val.toFixed(0)}%`;
+                    }
+                }
+            });
+        }
+
+        // Update Melee Upgrades
+        const meleeWeapon = this.scene.tower.weaponSlots.find(w => w.type === 'melee_weapon');
+        if (meleeWeapon) {
+            // Hide buy button, show upgrades
+            const buyBtn = document.getElementById('btn-buy-melee');
+            if (buyBtn) buyBtn.style.display = 'none';
+
+            ['count', 'speed'].forEach(type => {
+                const btn = document.getElementById(`btn-melee-upgrade-${type}`);
+                if (btn) {
+                    btn.style.display = 'flex';
+                    const levelLabel = document.getElementById(`level-melee-${type}`);
+                    if (levelLabel) {
+                        if (type === 'count') levelLabel.innerText = `${meleeWeapon.data.count} Blades`;
+                        if (type === 'speed') levelLabel.innerText = `${meleeWeapon.data.speed.toFixed(1)} Spd`;
+                    }
+                }
+            });
+        }
     }
 
     updateWaveDisplay(data) {

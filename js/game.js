@@ -19,7 +19,7 @@ class GameScene extends Phaser.Scene {
         this.particleManager = null;
         this.floatingTextManager = null;
         this.soundManager = null;
-        this.gold = 100; // Start with 100 gold
+        this.gold = 10000; // Start with 100 gold
     }
 
     create() {

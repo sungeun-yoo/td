@@ -8,14 +8,19 @@ export default class BaseProjectile extends BaseGameObject {
      * @param {number} y
      * @param {string} projectileType The key for the projectile's data.
      * @param {BaseGameObject} target The game object to fly towards.
+     * @param {number} [damageOverride] Optional damage override.
+     * @param {object} [effectsOverride] Optional effects override.
      */
-    constructor(scene, x, y, projectileType, target) {
+    constructor(scene, x, y, projectileType, target, damageOverride, effectsOverride) {
         super(scene, x, y);
 
         this.projectileData = PROJECTILE_DATA[projectileType];
         this.target = target;
         this.speed = this.projectileData.speed;
-        this.damage = this.projectileData.damage;
+
+        // Damage and Effects (merged from data and overrides)
+        this.damage = damageOverride !== undefined ? damageOverride : this.projectileData.damage;
+        this.effects = effectsOverride || { ...this.projectileData.effects };
 
         // Draw the projectile's shape
         const graphics = this.scene.add.graphics();
@@ -44,11 +49,8 @@ export default class BaseProjectile extends BaseGameObject {
         // A better way is to use physics overlap detection in the scene.
         if (this.target && this.active) {
             const distance = Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y);
-            if (distance < 20) { // A small threshold to register a hit.
-                // In a real game, you would apply damage to the target here.
-                // this.target.takeDamage(this.damage);
-                console.log(`'${this.projectileData.name}' hit the target!`);
-                this.destroy(); // Destroy the projectile on hit.
+            if (distance < 20) {
+                this.onHit(this.target);
             }
         }
 
@@ -56,5 +58,41 @@ export default class BaseProjectile extends BaseGameObject {
         if (!Phaser.Geom.Rectangle.Overlaps(this.scene.physics.world.bounds, this.getBounds())) {
             this.destroy();
         }
+    }
+
+    onHit(target) {
+        if (target && target.active && typeof target.takeDamage === 'function') {
+            target.takeDamage(this.damage);
+
+            // Apply Effects
+            if (this.effects.slowChance > 0 && Math.random() < this.effects.slowChance) {
+                if (typeof target.applySlow === 'function') target.applySlow(0.5, 2000); // 50% slow for 2s
+            }
+            if (this.effects.knockbackChance > 0 && Math.random() < this.effects.knockbackChance) {
+                if (typeof target.applyKnockback === 'function') {
+                    const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
+                    target.applyKnockback(angle, 200); // force 200
+                }
+            }
+        }
+
+        console.log(`'${this.projectileData.name}' hit the target!`);
+
+        // Chain Logic (formerly Pierce)
+        if (this.effects.chainChance > 0) {
+            if (Math.random() < this.effects.chainChance) {
+                // Pierced! 
+                // We need to avoid hitting the same target again immediately.
+                this.hitList = this.hitList || [];
+                this.hitList.push(target);
+
+                // Stop homing if we pierce, just keep going? 
+                // Or just retarget? For now, let's stop homing to simulate "passing through".
+                this.target = null;
+                return;
+            }
+        }
+
+        this.destroy();
     }
 }

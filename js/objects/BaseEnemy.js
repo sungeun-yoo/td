@@ -15,6 +15,11 @@ export default class BaseEnemy extends BaseGameObject {
         this.stunEndTime = 0;
         this.goldReward = Math.ceil((this.enemyData.goldReward || 10) * difficultyMultiplier);
 
+        // Status Effects
+        this.speedModifier = 1;
+        this.slowEndTime = 0;
+
+
         // --- Stats from Data ---
         this.health = this.enemyData.health * difficultyMultiplier;
         this.speed = this.enemyData.speed;
@@ -79,7 +84,7 @@ export default class BaseEnemy extends BaseGameObject {
             return;
         }
 
-        // Stun Logic
+        // Stun Logic (Knockback recovery)
         if (this.isStunned) {
             if (time < this.stunEndTime) {
                 // Apply drag to slow down from pushback
@@ -90,6 +95,12 @@ export default class BaseEnemy extends BaseGameObject {
                 this.body.drag.set(0);
             }
         }
+
+        // Slow Logic
+        if (time > this.slowEndTime) {
+            this.speedModifier = 1;
+        }
+        const currentSpeed = this.speed * this.speedModifier;
 
         if (!this.target) {
             this.body.setVelocity(0, 0);
@@ -102,7 +113,7 @@ export default class BaseEnemy extends BaseGameObject {
 
         if (attackType === 'melee') {
             const direction = new Phaser.Math.Vector2(this.target.x - this.x, this.target.y - this.y).normalize();
-            this.body.setVelocity(direction.x * this.speed, direction.y * this.speed);
+            this.body.setVelocity(direction.x * currentSpeed, direction.y * currentSpeed);
 
             if (distanceToTarget < 30) {
                 this.die(); // Melee units die on impact
@@ -111,7 +122,7 @@ export default class BaseEnemy extends BaseGameObject {
             const attackRange = 250;
             if (distanceToTarget > attackRange) {
                 const direction = new Phaser.Math.Vector2(this.target.x - this.x, this.target.y - this.y).normalize();
-                this.body.setVelocity(direction.x * this.speed, direction.y * this.speed);
+                this.body.setVelocity(direction.x * currentSpeed, direction.y * currentSpeed);
             } else {
                 this.body.setVelocity(0, 0);
                 if (time > this.lastAttackTime + this.attackData.fireRate) {
@@ -123,7 +134,7 @@ export default class BaseEnemy extends BaseGameObject {
             const stopDistance = 300; // Stop a bit further away
             if (distanceToTarget > stopDistance) {
                 const direction = new Phaser.Math.Vector2(this.target.x - this.x, this.target.y - this.y).normalize();
-                this.body.setVelocity(direction.x * this.speed, direction.y * this.speed);
+                this.body.setVelocity(direction.x * currentSpeed, direction.y * currentSpeed);
             } else {
                 this.body.setVelocity(0, 0);
             }
@@ -158,6 +169,35 @@ export default class BaseEnemy extends BaseGameObject {
     stun(duration) {
         this.isStunned = true;
         this.stunEndTime = this.scene.time.now + duration;
+    }
+
+    applySlow(factor, duration) {
+        this.speedModifier = factor;
+        this.slowEndTime = this.scene.time.now + duration;
+
+        // Visual feedback: Add a blue circle overlay
+        if (!this.slowIndicator) {
+            this.slowIndicator = this.scene.add.graphics();
+            this.slowIndicator.fillStyle(0x0000ff, 0.3);
+            this.slowIndicator.fillCircle(0, 0, this.body.width / 2 + 5);
+            this.add(this.slowIndicator);
+        }
+
+        this.scene.time.delayedCall(duration, () => {
+            if (this.active && this.scene.time.now >= this.slowEndTime) {
+                if (this.slowIndicator) {
+                    this.slowIndicator.destroy();
+                    this.slowIndicator = null;
+                }
+            }
+        });
+    }
+
+    applyKnockback(angle, force) {
+        const velocityX = Math.cos(angle) * force;
+        const velocityY = Math.sin(angle) * force;
+        this.body.setVelocity(velocityX, velocityY);
+        this.stun(300); // Stun briefly to allow knockback to take effect without immediate overwrite
     }
 
     performRangedAttack() {
