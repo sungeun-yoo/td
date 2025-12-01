@@ -111,22 +111,7 @@ export default class UIManager {
         const upgrades = [
             { type: 'damage', label: 'Damage' },
             { type: 'speed', label: 'Speed' },
-            { type: 'range', label: 'Range' },
-            // Status Effects (handled as upgrades on default weapon or global?)
-            // The prompt says "Upgrade... increase percent by 0.5".
-            // Let's treat them as upgrades on the default weapon for now, or we need a new system.
-            // Since we added 'effects' to projectile data, we can upgrade those.
-            // But Tower.upgrade() delegates to weapon.upgrade().
-            // We need to support 'slowChance', 'knockbackChance', 'pierceChance' in Weapon.upgrade().
-            // Let's add them here.
-            { type: 'multishot', label: 'Multishot' }, // Moved from Weapon tab? No, prompt says "Weapon tab... basic weapon's multishot". 
-            // Wait, prompt: "In Weapon tab... add multishot".
-            // So Multishot should be in Weapon Tab? Or just an upgrade?
-            // "Weapon tab... basic weapon's multishot... add shot".
-            // Let's put Multishot in the Weapon Tab under "Default Weapon" entry?
-            // Or just put it here for simplicity?
-            // Let's stick to the prompt: "In Weapon tab...".
-            // So I will NOT put multishot here.
+            { type: 'range', label: 'Range' }
         ];
 
         upgrades.forEach(u => {

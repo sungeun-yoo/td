@@ -1,7 +1,8 @@
 import BaseGameObject from './BaseGameObject.js';
 import TowerSummonEffect from '../effects/TowerSummonEffect.js';
 import { EventManager } from '../managers/EventManager.js';
-import { RangedWeapon, MeleeWeapon } from './Weapon.js';
+import { RangedWeapon } from './weapons/RangedWeapon.js';
+import { MeleeWeapon } from './weapons/MeleeWeapon.js';
 
 export default class Tower extends BaseGameObject {
     constructor(scene, x, y, enemiesGroup) {
