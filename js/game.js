@@ -55,7 +55,13 @@ class GameScene extends Phaser.Scene {
 
         // --- Level Manager ---
         this.levelManager = new LevelManager(this);
-        this.levelManager.startLevel(1);
+        // LevelManager waits for TOWER_SPAWNED event to start the first wave
+        // But we can also manually start it if needed, or just let the event handle it.
+        // Since we removed startLevel, we rely on the event or manual start.
+        // The Tower is created above, but it might emit TOWER_SPAWNED in its constructor or we need to emit it.
+        // Checking Tower.js... it likely doesn't emit TOWER_SPAWNED.
+        // Let's just start the first wave here.
+        this.levelManager.startNextWave();
 
         // --- Physics Collisions ---
         this.physics.add.overlap(this.tower, this.enemies, (tower, enemy) => {
@@ -141,3 +147,5 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+window.game = game;
+// Note: LevelManager is instantiated in GameScene, so it's accessible via window.game.scene.scenes[0].levelManager

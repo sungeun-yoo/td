@@ -66,5 +66,23 @@ export const ENEMY_DATA = {
             damage: 5
         },
         goldReward: 5
+    },
+    'boss_carrier': {
+        name: 'Carrier Boss',
+        health: 2000,
+        speed: 30,
+        shape: {
+            type: 'square',
+            size: 80,
+            hollow: true,
+            diagonal: 'cross' // 'X' shape
+        },
+        color: 0xffaa00, // Gold/Orange
+        attack: {
+            type: 'spawner',
+            spawnType: 'enemy_type_4', // Spawns Swarmers
+            spawnRate: 2000 // Every 2 seconds
+        },
+        goldReward: 500
     }
 };

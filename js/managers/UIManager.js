@@ -174,7 +174,9 @@ export default class UIManager {
     }
 
     updateWaveDisplay(data) {
-        if (this.waveDisplay) this.waveDisplay.innerText = data.wave;
+        // Use globalWave if available, otherwise fallback to local wave
+        const waveNum = data.globalWave || data.wave;
+        if (this.waveDisplay) this.waveDisplay.innerText = waveNum;
         this.onWaveStart(data); // Call original wave start animation
     }
 
@@ -214,7 +216,8 @@ export default class UIManager {
     }
 
     onWaveStart(waveData) {
-        const text = `Wave ${waveData.wave}`;
+        const waveNum = waveData.globalWave || waveData.wave;
+        const text = `Wave ${waveNum}`;
         const screenCenterX = this.scene.cameras.main.worldView.x + this.scene.cameras.main.width / 2;
         const screenCenterY = this.scene.cameras.main.worldView.y + this.scene.cameras.main.height / 2;
 

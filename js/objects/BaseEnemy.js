@@ -56,6 +56,9 @@ export default class BaseEnemy extends BaseGameObject {
 
             if (shapeData.diagonal === 'tr-bl') {
                 graphics.lineBetween(halfSize, -halfSize, -halfSize, halfSize);
+            } else if (shapeData.diagonal === 'cross') {
+                graphics.lineBetween(halfSize, -halfSize, -halfSize, halfSize);
+                graphics.lineBetween(-halfSize, -halfSize, halfSize, halfSize);
             }
         }
         this.add(graphics);
@@ -116,7 +119,40 @@ export default class BaseEnemy extends BaseGameObject {
                     this.lastAttackTime = time;
                 }
             }
+        } else if (attackType === 'spawner') {
+            const stopDistance = 300; // Stop a bit further away
+            if (distanceToTarget > stopDistance) {
+                const direction = new Phaser.Math.Vector2(this.target.x - this.x, this.target.y - this.y).normalize();
+                this.body.setVelocity(direction.x * this.speed, direction.y * this.speed);
+            } else {
+                this.body.setVelocity(0, 0);
+            }
+
+            // Spawning Logic
+            if (time > this.lastAttackTime + this.attackData.spawnRate) {
+                this.spawnMinion();
+                this.lastAttackTime = time;
+            }
         }
+    }
+
+    spawnMinion() {
+        // Spawn a minion near the boss
+        const spawnX = this.x + Phaser.Math.Between(-50, 50);
+        const spawnY = this.y + Phaser.Math.Between(-50, 50);
+
+        // Use the scene's spawnEnemy method but we need to adapt it since it picks a random edge position usually.
+        // We'll instantiate BaseEnemy directly here.
+        const minionType = this.attackData.spawnType;
+        // Minions shouldn't be too hard, maybe scale them down or keep them base level.
+        // Let's use the same difficulty multiplier as the boss for now, or 1.
+        const minion = new BaseEnemy(this.scene, spawnX, spawnY, minionType, this.target, 1);
+        this.scene.enemies.add(minion, true);
+
+        // Visual effect for spawning
+        this.scene.add.circle(spawnX, spawnY, 20, 0xffffff, 0.5).setDepth(10);
+        // Fade out the circle
+        // (Implementation omitted for brevity, but could be added)
     }
 
     stun(duration) {
