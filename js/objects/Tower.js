@@ -182,4 +182,49 @@ export default class Tower extends BaseGameObject {
                 break;
         }
     }
+
+    useShockwave() {
+        const range = 500;
+        const damage = 50;
+        const pushForce = 300;
+
+        // Visual Effect
+        const shockwave = this.scene.add.circle(this.x, this.y, 10, 0x00ffff, 0.5);
+        this.scene.tweens.add({
+            targets: shockwave,
+            radius: range,
+            alpha: 0,
+            duration: 500,
+            onComplete: () => shockwave.destroy()
+        });
+
+        // Logic
+        this.enemiesGroup.getChildren().forEach(enemy => {
+            if (!enemy.active) return;
+
+            const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
+            if (distance <= range) {
+                // Damage
+                if (typeof enemy.takeDamage === 'function') {
+                    enemy.takeDamage(damage);
+                }
+
+                // Pushback
+                const angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y);
+                const velocityX = Math.cos(angle) * pushForce;
+                const velocityY = Math.sin(angle) * pushForce;
+
+                // Apply velocity directly (assuming Arcade Physics)
+                if (enemy.body) {
+                    enemy.body.setVelocity(velocityX, velocityY);
+                    // Disable normal movement temporarily? 
+                    // BaseEnemy update resets velocity, so we might need a "stunned" state or just let the physics engine handle the impulse for one frame.
+                    // To make it noticeable, let's stun them briefly.
+                    enemy.stun(500); // We need to implement this in BaseEnemy
+                }
+            }
+        });
+
+        console.log("Shockwave used!");
+    }
 }

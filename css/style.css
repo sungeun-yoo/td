@@ -1,0 +1,185 @@
+/* Global Styles */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Bottom Sheet Container */
+#bottom-sheet {
+    position: fixed;
+    /* Changed from absolute to fixed */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 300px;
+    /* Adjust as needed */
+    background: rgba(20, 20, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+/* Tab Bar */
+#tab-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: color 0.2s;
+    flex: 1;
+}
+
+.tab-button.active {
+    color: #00ffff;
+}
+
+.tab-button img {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 5px;
+    filter: grayscale(100%);
+    transition: filter 0.2s;
+}
+
+.tab-button.active img {
+    filter: grayscale(0%) drop-shadow(0 0 5px #00ffff);
+}
+
+/* Content Area */
+#content-area {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.tab-content {
+    display: none;
+    height: 100%;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Grid Layout for Upgrades */
+.upgrade-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 15px;
+}
+
+.upgrade-btn {
+    background: linear-gradient(145deg, #2a2a3a, #1a1a25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+    aspect-ratio: 1;
+    /* Make it square */
+}
+
+.upgrade-btn:active {
+    transform: scale(0.95);
+}
+
+.upgrade-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(100%);
+}
+
+.upgrade-btn.affordable {
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+.upgrade-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.upgrade-cost {
+    color: #FFD700;
+    font-size: 12px;
+}
+
+.upgrade-level {
+    font-size: 10px;
+    color: #aaa;
+    margin-top: 5px;
+}
+
+/* Toggle Button (Handle) */
+#toggle-handle {
+    width: 40px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    margin: 10px auto;
+    cursor: pointer;
+}
+
+/* Top UI (Gold, Wave) */
+#top-ui {
+    position: fixed;
+    /* Changed from absolute to fixed to stay on screen */
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    /* Let clicks pass through */
+    box-sizing: border-box;
+    z-index: 1000;
+}
+
+.stat-box {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.gold-icon {
+    color: #FFD700;
+}

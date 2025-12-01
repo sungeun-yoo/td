@@ -124,8 +124,12 @@ class GameScene extends Phaser.Scene {
 
 const config = {
     type: Phaser.AUTO,
-    width: 1080,
-    height: 1920,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 1080,
+        height: 1920
+    },
     backgroundColor: '#000000',
     physics: {
         default: 'arcade',

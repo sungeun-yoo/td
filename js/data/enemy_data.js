@@ -30,6 +30,41 @@ export const ENEMY_DATA = {
             type: 'ranged',
             projectileType: 'projectile_type_1',
             fireRate: 1500 // Time in ms between shots
-        }
+        },
+        goldReward: 15
+    },
+    'enemy_type_3': {
+        name: 'Tank Enemy',
+        health: 150,
+        speed: 60,
+        shape: {
+            type: 'square',
+            size: 40,
+            hollow: false, // Solid
+            diagonal: 'tr-bl'
+        },
+        color: 0x0000ff, // Blue
+        attack: {
+            type: 'melee',
+            damage: 30
+        },
+        goldReward: 30
+    },
+    'enemy_type_4': {
+        name: 'Swarmer Enemy',
+        health: 20,
+        speed: 200,
+        shape: {
+            type: 'square',
+            size: 15,
+            hollow: false,
+            diagonal: null
+        },
+        color: 0xff00ff, // Purple
+        attack: {
+            type: 'melee',
+            damage: 5
+        },
+        goldReward: 5
     }
 };

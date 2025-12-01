@@ -11,6 +11,8 @@ export default class BaseEnemy extends BaseGameObject {
         this.enemyData = ENEMY_DATA[enemyType];
         this.target = target;
         this.isDying = false;
+        this.isStunned = false;
+        this.stunEndTime = 0;
         this.goldReward = Math.ceil((this.enemyData.goldReward || 10) * difficultyMultiplier);
 
         // --- Stats from Data ---
@@ -74,6 +76,18 @@ export default class BaseEnemy extends BaseGameObject {
             return;
         }
 
+        // Stun Logic
+        if (this.isStunned) {
+            if (time < this.stunEndTime) {
+                // Apply drag to slow down from pushback
+                this.body.drag.set(500);
+                return; // Skip movement logic
+            } else {
+                this.isStunned = false;
+                this.body.drag.set(0);
+            }
+        }
+
         if (!this.target) {
             this.body.setVelocity(0, 0);
             return;
@@ -103,6 +117,11 @@ export default class BaseEnemy extends BaseGameObject {
                 }
             }
         }
+    }
+
+    stun(duration) {
+        this.isStunned = true;
+        this.stunEndTime = this.scene.time.now + duration;
     }
 
     performRangedAttack() {
