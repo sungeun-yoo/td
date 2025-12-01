@@ -61,7 +61,7 @@ class GameScene extends Phaser.Scene {
         // The Tower is created above, but it might emit TOWER_SPAWNED in its constructor or we need to emit it.
         // Checking Tower.js... it likely doesn't emit TOWER_SPAWNED.
         // Let's just start the first wave here.
-        this.levelManager.startNextWave();
+        // this.levelManager.startNextWave();
 
         // --- Physics Collisions ---
         this.physics.add.overlap(this.tower, this.enemies, (tower, enemy) => {
