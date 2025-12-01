@@ -19,14 +19,14 @@ export default class UIManager {
                 <span>Wave <span id="wave-display">1</span></span>
             </div>
         `;
-        document.body.appendChild(topUI);
+        document.getElementById('game-container').appendChild(topUI);
         this.goldDisplay = document.getElementById('gold-display');
         this.waveDisplay = document.getElementById('wave-display');
 
         // --- Bottom Sheet ---
         const bottomSheet = document.createElement('div');
         bottomSheet.id = 'bottom-sheet';
-        document.body.appendChild(bottomSheet);
+        document.getElementById('game-container').appendChild(bottomSheet);
         this.bottomSheet = bottomSheet;
 
         // Toggle Handle
@@ -260,7 +260,7 @@ export default class UIManager {
         overlay.style.justifyContent = 'center';
         overlay.style.alignItems = 'center';
         overlay.style.zIndex = '100'; // Ensure it's on top
-        document.body.appendChild(overlay);
+        document.getElementById('game-container').appendChild(overlay);
 
         // "GAME OVER" text
         const gameOverText = document.createElement('h1');

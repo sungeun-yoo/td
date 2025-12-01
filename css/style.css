@@ -10,10 +10,37 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Game Container */
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+    #game-container {
+        height: 100vh;
+        width: 56.25vh;
+        /* 9/16 aspect ratio */
+        max-width: 100%;
+        margin: 0 auto;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+        background-color: #111;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
 /* Bottom Sheet Container */
 #bottom-sheet {
-    position: fixed;
-    /* Changed from absolute to fixed */
+    position: absolute;
+    /* Changed from fixed to absolute to stay within container */
     bottom: 0;
     left: 0;
     width: 100%;
@@ -154,8 +181,8 @@ body {
 
 /* Top UI (Gold, Wave) */
 #top-ui {
-    position: fixed;
-    /* Changed from absolute to fixed to stay on screen */
+    position: absolute;
+    /* Changed from fixed to absolute to stay within container */
     top: 0;
     left: 0;
     width: 100%;
