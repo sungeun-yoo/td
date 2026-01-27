@@ -19,10 +19,16 @@ export default class UIManager {
             <div class="stat-box">
                 <span>Wave <span id="wave-display">1</span></span>
             </div>
+            <div class="stat-box" id="speed-btn" style="cursor: pointer;">
+                <span>⏩ <span id="speed-display">1x</span></span>
+            </div>
         `;
         document.getElementById('game-container').appendChild(topUI);
         this.goldDisplay = document.getElementById('gold-display');
         this.waveDisplay = document.getElementById('wave-display');
+
+        // Speed Button Listener
+        document.getElementById('speed-btn').addEventListener('click', () => this.toggleGameSpeed());
 
         // --- Bottom Sheet ---
         const bottomSheet = document.createElement('div');
@@ -302,6 +308,23 @@ export default class UIManager {
         } else {
             sheet.style.transform = 'translateY(80%)';
         }
+    }
+
+    toggleGameSpeed() {
+        const speeds = [1, 2, 4];
+        // Find current speed index
+        const currentSpeed = this.scene.time.timeScale;
+        let nextIndex = speeds.indexOf(currentSpeed) + 1;
+        if (nextIndex >= speeds.length || nextIndex === 0) { // Handle not found (-1 + 1 = 0) or overflow
+            if (speeds.indexOf(currentSpeed) === -1) nextIndex = 0; // Default to 1x if unknown
+            else if (nextIndex >= speeds.length) nextIndex = 0;
+        }
+
+        const newSpeed = speeds[nextIndex];
+        this.scene.setGameSpeed(newSpeed);
+
+        const speedDisplay = document.getElementById('speed-display');
+        if (speedDisplay) speedDisplay.innerText = `${newSpeed}x`;
     }
 
     updateGoldDisplay(amount) {

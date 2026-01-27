@@ -4,7 +4,7 @@ import BaseProjectile from './objects/BaseProjectile.js';
 import LevelManager from './managers/LevelManager.js';
 import UIManager from './managers/UIManager.js';
 import ParticleManager from './managers/ParticleManager.js';
-import FloatingTextManager from './managers/FloatingTextManager.js';
+import UIScene from './scenes/UIScene.js';
 import SoundManager from './managers/SoundManager.js';
 import { EventManager } from './managers/EventManager.js';
 
@@ -17,15 +17,16 @@ class GameScene extends Phaser.Scene {
         this.levelManager = null;
         this.uiManager = null;
         this.particleManager = null;
-        this.floatingTextManager = null;
+        // FloatingTextManager moved to UIScene
         this.soundManager = null;
         this.gold = 10000; // Start with 100 gold
     }
 
     create() {
         // --- Groups ---
-        this.enemies = this.physics.add.group({ classType: BaseEnemy, runChildUpdate: true });
-        this.projectiles = this.physics.add.group({ classType: BaseProjectile, runChildUpdate: true });
+        // Disable runChildUpdate so we can manually update with scaled delta
+        this.enemies = this.physics.add.group({ classType: BaseEnemy, runChildUpdate: false });
+        this.projectiles = this.physics.add.group({ classType: BaseProjectile, runChildUpdate: false });
 
         // --- Tower ---
         const towerX = this.cameras.main.width / 2;
@@ -35,9 +36,15 @@ class GameScene extends Phaser.Scene {
         // --- Managers ---
         // Initialize ParticleManager early so it's ready for events
         this.particleManager = new ParticleManager(this);
-        this.floatingTextManager = new FloatingTextManager(this);
+        // FloatingTextManager is now in UIScene
         this.soundManager = new SoundManager(this);
         this.uiManager = new UIManager(this);
+
+        // Launch UI Scene
+        if (!this.scene.isActive('UIScene')) {
+            this.scene.launch('UIScene');
+            this.scene.bringToTop('UIScene');
+        }
 
         // Listen for the tower's destruction to signal game over
         this.tower.on('destroy', () => {
@@ -123,12 +130,22 @@ class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
+        const scaledDelta = delta * this.time.timeScale;
+
         if (this.tower) {
-            this.tower.update(time, delta);
+            this.tower.update(time, scaledDelta);
         }
         if (this.levelManager) {
-            this.levelManager.update(time, delta);
+            this.levelManager.update(time, scaledDelta);
         }
+
+        // Manually update groups with scaled delta
+        this.enemies.children.each(enemy => {
+            if (enemy.active) enemy.update(time, scaledDelta);
+        });
+        this.projectiles.children.each(projectile => {
+            if (projectile.active) projectile.update(time, scaledDelta);
+        });
     }
 
     onBossSpawned() {
@@ -145,6 +162,16 @@ class GameScene extends Phaser.Scene {
         this.time.delayedCall(500, () => {
             this.cameras.main.zoomTo(1, 1000, 'Sine.easeInOut');
         });
+    }
+
+    setGameSpeed(speed) {
+        this.time.timeScale = speed;
+        this.tweens.timeScale = speed;
+
+        // Arcade Physics timeScale is inverse: 1.0 = normal, 0.5 = 2x speed, 2.0 = 0.5x speed
+        this.physics.world.timeScale = 1 / speed;
+
+        console.log(`Game Speed set to: ${speed}x (Physics TimeScale: ${1 / speed})`);
     }
 
     shutdown() {

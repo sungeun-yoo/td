@@ -4,14 +4,19 @@ import BaseProjectile from '../BaseProjectile.js';
 export class RangedWeapon extends Weapon {
     constructor(scene, tower, type) {
         super(scene, tower, type);
+        this.fireTimer = 0;
     }
 
     update(time, delta) {
-        if (time > this.lastFireTime + this.data.speed) {
+        if (this.fireTimer > 0) {
+            this.fireTimer -= delta;
+        }
+
+        if (this.fireTimer <= 0) {
             const targets = this.findTargets(this.data.multishot);
             if (targets.length > 0) {
                 this.fire(targets);
-                this.lastFireTime = time;
+                this.fireTimer = this.data.speed;
             }
         }
     }

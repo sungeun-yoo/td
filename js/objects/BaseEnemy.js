@@ -24,7 +24,10 @@ export default class BaseEnemy extends BaseGameObject {
         this.health = this.enemyData.health * difficultyMultiplier;
         this.speed = this.enemyData.speed;
         this.attackData = this.enemyData.attack;
-        this.lastAttackTime = 0;
+        this.attackData = this.enemyData.attack;
+        this.attackTimer = 0; // Timer for attacks
+        this.stunTimer = 0;   // Timer for stun
+        this.slowTimer = 0;   // Timer for slow
 
         console.log(`Spawned ${this.enemyData.name} with Health: ${this.health}, Gold Reward: ${this.goldReward}`);
 
@@ -90,7 +93,8 @@ export default class BaseEnemy extends BaseGameObject {
 
         // Stun Logic (Knockback recovery)
         if (this.isStunned) {
-            if (time < this.stunEndTime) {
+            this.stunTimer -= delta;
+            if (this.stunTimer > 0) {
                 // Apply drag to slow down from pushback
                 this.body.drag.set(500);
                 return; // Skip movement logic
@@ -101,8 +105,11 @@ export default class BaseEnemy extends BaseGameObject {
         }
 
         // Slow Logic
-        if (time > this.slowEndTime) {
-            this.speedModifier = 1;
+        if (this.slowTimer > 0) {
+            this.slowTimer -= delta;
+            if (this.slowTimer <= 0) {
+                this.speedModifier = 1;
+            }
         }
         const currentSpeed = this.speed * this.speedModifier;
 
@@ -129,9 +136,13 @@ export default class BaseEnemy extends BaseGameObject {
                 this.body.setVelocity(direction.x * currentSpeed, direction.y * currentSpeed);
             } else {
                 this.body.setVelocity(0, 0);
-                if (time > this.lastAttackTime + this.attackData.fireRate) {
+
+                if (this.attackTimer > 0) {
+                    this.attackTimer -= delta;
+                }
+                if (this.attackTimer <= 0) {
                     this.performRangedAttack();
-                    this.lastAttackTime = time;
+                    this.attackTimer = this.attackData.fireRate;
                 }
             }
         } else if (attackType === 'spawner') {
@@ -144,9 +155,12 @@ export default class BaseEnemy extends BaseGameObject {
             }
 
             // Spawning Logic
-            if (time > this.lastAttackTime + this.attackData.spawnRate) {
+            if (this.attackTimer > 0) {
+                this.attackTimer -= delta;
+            }
+            if (this.attackTimer <= 0) {
                 this.spawnMinion();
-                this.lastAttackTime = time;
+                this.attackTimer = this.attackData.spawnRate;
             }
         }
     }
@@ -172,12 +186,12 @@ export default class BaseEnemy extends BaseGameObject {
 
     stun(duration) {
         this.isStunned = true;
-        this.stunEndTime = this.scene.time.now + duration;
+        this.stunTimer = duration;
     }
 
     applySlow(factor, duration) {
         this.speedModifier = factor;
-        this.slowEndTime = this.scene.time.now + duration;
+        this.slowTimer = duration;
 
         // Visual feedback: Add a blue circle overlay
         if (!this.slowIndicator) {
